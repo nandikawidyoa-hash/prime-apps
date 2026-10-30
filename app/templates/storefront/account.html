@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard Pelanggan — {{ store_settings.store_name or 'PRIME APPS' }}{% endblock %}
+
+{% block content %}
+<div class="container" style="padding-top: 40px; padding-bottom: 80px;">
+  <!-- Account Header -->
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px; flex-wrap: wrap; gap: 16px;">
+    <div>
+      <h1>Akun & Lisensi Saya</h1>
+      <p class="text-sm">Kelola profil dan akses seluruh kode lisensi aplikasi digital yang pernah Anda beli.</p>
+    </div>
+    <a href="/auth/logout" class="btn btn-secondary btn-sm" style="color: var(--danger);">Keluar Akun</a>
+  </div>
+
+  <div style="display: grid; grid-template-columns: 280px 1fr; gap: 32px; align-items: start;">
+    <!-- Profile Card -->
+    <div style="background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); padding: 24px;">
+      <div style="width: 56px; height: 56px; border-radius: 50%; background: var(--accent-subtle); color: var(--accent); display: flex; align-items: center; justify-content: center; font-size: 1.4rem; font-weight: 700; margin-bottom: 16px;">
+        {{ current_user.full_name[0] }}
+      </div>
+      
+      <h3 style="font-size: 1.15rem; margin-bottom: 4px;">{{ current_user.full_name }}</h3>
+      <p class="text-xs text-muted" style="margin-bottom: 16px;">{{ current_user.email }}</p>
+
+      <div style="border-top: 1px solid var(--border-subtle); padding-top: 16px; font-size: 0.85rem; display: flex; flex-direction: column; gap: 8px;">
+        <div>
+          <span class="text-muted">Nomor WhatsApp:</span><br>
+          <strong>{{ current_user.phone or '-' }}</strong>
+        </div>
+        <div>
+          <span class="text-muted">Status Akun:</span><br>
+          <span class="badge badge-success">Terverifikasi</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- License Vault & Order History -->
+    <div>
+      <h3 style="margin-bottom: 18px; font-size: 1.3rem;">Riwayat Pembelian & Lisensi Digital</h3>
+
+      {% if orders %}
+        <div style="display: flex; flex-direction: column; gap: 20px;">
+          {% for order in orders %}
+            <div style="background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); padding: 24px; box-shadow: var(--shadow-sm);">
+              
+              <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-subtle); padding-bottom: 14px; margin-bottom: 16px; flex-wrap: wrap; gap: 8px;">
+                <div>
+                  <span style="font-weight: 700; font-size: 1rem;">Pesanan #{{ order.order_number }}</span>
+                  <span class="text-xs text-muted" style="margin-left: 8px;">{{ order.created_at }}</span>
+                </div>
+                <div>
+                  {% if order.payment_status == 'PAID' %}
+                    <span class="badge badge-success">LUNAS</span>
+                  {% elif order.payment_status == 'PENDING' %}
+                    <span class="badge badge-warning">MENUNGGU PEMBAYARAN</span>
+                  {% else %}
+                    <span class="badge badge-neutral">{{ order.payment_status }}</span>
+                  {% endif %}
+                </div>
+              </div>
+
+              <!-- Order Items with License Keys -->
+              <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 16px;">
+                {% for item in order.items %}
+                  <div style="display: flex; justify-content: space-between; align-items: center; background: var(--bg-primary); padding: 12px 16px; border-radius: var(--radius-md); flex-wrap: wrap; gap: 10px;">
+                    <div>
+                      <div style="font-weight: 600; font-size: 0.95rem;">{{ item.product_name }} ({{ item.quantity }}x)</div>
+                      {% if item.digital_payload and order.payment_status == 'PAID' %}
+                        <div class="font-mono text-xs" style="color: var(--accent); margin-top: 4px; font-weight: 600;">
+                          Lisensi: {{ item.digital_payload }}
+                        </div>
+                      {% endif %}
+                    </div>
+
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                      <div style="font-weight: 700; font-size: 0.95rem;">
+                        Rp {{ "{:,}".format(item.subtotal).replace(',', '.') }}
+                      </div>
+                      {% if item.digital_payload and order.payment_status == 'PAID' %}
+                        <button type="button" onclick="copyToClipboard('{{ item.digital_payload }}')" class="btn btn-secondary btn-sm">
+                          Salin Serial
+                        </button>
+                      {% endif %}
+                    </div>
+                  </div>
+                {% endfor %}
+              </div>
+
+              <!-- Order Footer -->
+              <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; padding-top: 10px;">
+                <div class="text-muted">Metode: {{ order.payment_method }}</div>
+                <div style="display: flex; align-items: center; gap: 12px;">
+                  <span style="font-weight: 700; font-size: 1.05rem;">Total: Rp {{ "{:,}".format(order.total_amount).replace(',', '.') }}</span>
+                  {% if order.payment_status == 'PENDING' %}
+                    <a href="/payment/{{ order.order_number }}" class="btn btn-primary btn-sm">Bayar Sekarang</a>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div style="background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); padding: 48px; text-align: center;">
+          <div style="font-size: 2.5rem; margin-bottom: 12px;">📦</div>
+          <h4>Belum Ada Pesanan</h4>
+          <p class="text-sm text-muted" style="margin-bottom: 20px;">Anda belum melakukan transaksi pembelian lisensi apa pun.</p>
+          <a href="/catalog" class="btn btn-primary btn-sm">Mulai Belanja</a>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

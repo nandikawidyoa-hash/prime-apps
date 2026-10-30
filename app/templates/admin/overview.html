@@ -1,0 +1,139 @@
+{% extends "admin/base_admin.html" %}
+
+{% block page_title %}Ringkasan Dashboard{% endblock %}
+{% block page_subtitle %}Statistik penjualan aktual dan kinerja operasional toko{% endblock %}
+
+{% block content %}
+<!-- Metric Stat Cards -->
+<div class="stat-grid">
+  <div class="stat-card">
+    <div class="stat-title">Total Pendapatan Bersih</div>
+    <div class="stat-value" style="color: var(--accent);">
+      Rp {{ "{:,}".format(stats.total_revenue).replace(',', '.') }}
+    </div>
+    <div class="text-xs text-muted" style="margin-top: 6px;">Dari {{ stats.paid_orders_count }} transaksi lunas</div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-title">Total Pesanan Masuk</div>
+    <div class="stat-value">{{ stats.total_orders }}</div>
+    <div class="text-xs text-muted" style="margin-top: 6px;">{{ stats.pending_orders }} menunggu pembayaran</div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-title">Total Pelanggan</div>
+    <div class="stat-value">{{ stats.total_customers }}</div>
+    <div class="text-xs text-muted" style="margin-top: 6px;">Pengguna terdaftar</div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-title">Katalog Produk</div>
+    <div class="stat-value">{{ stats.active_products }}</div>
+    <div class="text-xs text-muted" style="margin-top: 6px;">{{ stats.inactive_products }} nonaktif / draft</div>
+  </div>
+</div>
+
+<!-- Sales Trend Chart Section -->
+<div style="background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); padding: 24px; margin-bottom: 32px; box-shadow: var(--shadow-sm);">
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 12px;">
+    <div>
+      <h3 style="font-size: 1.15rem; margin-bottom: 4px;">Grafik Tren Penjualan 7 Hari Terakhir</h3>
+      <p class="text-xs text-muted">Pergerakan omset pesanan lunas secara harian</p>
+    </div>
+    <div style="display: flex; gap: 8px;">
+      <a href="/admin/reports" class="btn btn-secondary btn-sm">Lihat Laporan Lengkap →</a>
+    </div>
+  </div>
+
+  <!-- SVG Chart Container -->
+  <div id="sales-trend-chart-box" style="width: 100%; min-height: 240px;"></div>
+</div>
+
+<!-- Grid: Top Selling Products & Recent Orders -->
+<div style="display: grid; grid-template-columns: 1fr 1.6fr; gap: 24px; align-items: start;">
+  <!-- Top Selling Products -->
+  <div style="background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); padding: 24px;">
+    <h3 style="font-size: 1.1rem; margin-bottom: 16px;">Produk Terlaris</h3>
+    
+    {% if top_products %}
+      <div style="display: flex; flex-direction: column; gap: 12px;">
+        {% for prod in top_products %}
+          <div style="display: flex; align-items: center; justify-content: space-between; padding: 10px; background: var(--bg-primary); border-radius: var(--radius-md);">
+            <div style="display: flex; align-items: center; gap: 12px; min-width: 0;">
+              <span class="badge badge-neutral" style="font-size: 10px;">#{{ loop.index }}</span>
+              <div style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 160px;">
+                <div style="font-weight: 600; font-size: 0.9rem;">{{ prod.product_name }}</div>
+                <div class="text-xs text-muted">{{ prod.total_sold }} terjual</div>
+              </div>
+            </div>
+            <div style="font-weight: 700; font-size: 0.875rem;">
+              Rp {{ "{:,}".format(prod.total_revenue).replace(',', '.') }}
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <p class="text-xs text-muted">Belum ada transaksi produk tercatat.</p>
+    {% endif %}
+  </div>
+
+  <!-- Recent Transactions Table -->
+  <div style="background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); padding: 24px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+      <h3 style="font-size: 1.1rem;">Transaksi Terbaru</h3>
+      <a href="/admin/orders" class="text-xs text-muted">Lihat Semua →</a>
+    </div>
+
+    {% if recent_orders %}
+      <div class="table-container" style="box-shadow: none; border: none;">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Order #</th>
+              <th>Pelanggan</th>
+              <th>Total</th>
+              <th>Status</th>
+              <th>Aksi</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for ord in recent_orders %}
+              <tr>
+                <td><strong>#{{ ord.order_number }}</strong></td>
+                <td>
+                  <div>{{ ord.customer_name }}</div>
+                  <div class="text-xs text-muted">{{ ord.customer_email }}</div>
+                </td>
+                <td style="font-weight: 600;">Rp {{ "{:,}".format(ord.total_amount).replace(',', '.') }}</td>
+                <td>
+                  {% if ord.payment_status == 'PAID' %}
+                    <span class="badge badge-success">Lunas</span>
+                  {% elif ord.payment_status == 'PENDING' %}
+                    <span class="badge badge-warning">Pending</span>
+                  {% else %}
+                    <span class="badge badge-neutral">{{ ord.payment_status }}</span>
+                  {% endif %}
+                </td>
+                <td>
+                  <a href="/admin/orders/{{ ord.id }}" class="btn btn-secondary btn-sm" style="padding: 4px 8px; font-size: 11px;">Detail</a>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <p class="text-xs text-muted">Belum ada transaksi masuk.</p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const chartData = {{ chart_data_json | safe }};
+  renderSalesChart('sales-trend-chart-box', chartData);
+});
+</script>
+{% endblock %}

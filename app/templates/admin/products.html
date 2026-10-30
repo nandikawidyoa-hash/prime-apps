@@ -1,0 +1,152 @@
+{% extends "admin/base_admin.html" %}
+
+{% block page_title %}Manajemen Produk{% endblock %}
+{% block page_subtitle %}Kelola katalog aplikasi, harga lisensi, stok kunci serial, dan foto produk{% endblock %}
+
+{% block content %}
+<!-- Search, Filter & Counter Bar -->
+<div style="background: var(--bg-surface); padding: 18px; border-radius: var(--radius-lg); border: 1px solid var(--border-subtle); margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px;">
+  <form method="GET" action="/admin/products" style="display: flex; gap: 10px; flex: 1; max-width: 620px; flex-wrap: wrap;">
+    <input type="text" name="q" value="{{ query_q or '' }}" placeholder="Cari nama produk, SKU, atau kategori..." class="form-input" style="flex: 1; min-width: 180px; padding: 8px 12px;">
+    
+    <select name="status" class="form-select" style="width: 140px; padding: 8px 12px;">
+      <option value="">Semua Status</option>
+      <option value="active" {% if query_status == 'active' %}selected{% endif %}>Aktif</option>
+      <option value="draft" {% if query_status == 'draft' %}selected{% endif %}>Draft</option>
+      <option value="archived" {% if query_status == 'archived' %}selected{% endif %}>Diarsipkan</option>
+    </select>
+
+    <button type="submit" class="btn btn-secondary btn-sm">Filter</button>
+    {% if query_q or query_status %}
+      <a href="/admin/products" class="btn btn-subtle btn-sm">Reset</a>
+    {% endif %}
+  </form>
+
+  <div style="display: flex; align-items: center; gap: 12px;">
+    <span class="text-xs text-muted">Total: <strong>{{ total_count }}</strong> produk</span>
+    <a href="/admin/products/new" class="btn btn-primary btn-sm">
+      + Tambah Produk Baru
+    </a>
+  </div>
+</div>
+
+<!-- Products Table -->
+<div class="table-container">
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th style="width: 60px;">Foto</th>
+        <th>Nama Produk & SKU</th>
+        <th>Kategori</th>
+        <th>Harga Normal</th>
+        <th>Harga Diskon</th>
+        <th>Stok Lisensi</th>
+        <th style="text-align: center;">Aktif di Toko</th>
+        <th style="text-align: right;">Aksi</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% if products %}
+        {% for prod in products %}
+          <tr>
+            <td>
+              <div style="width: 48px; height: 38px; border-radius: 6px; overflow: hidden; background: var(--bg-secondary);">
+                {% if prod.primary_image %}
+                  <img src="{{ prod.primary_image }}" alt="{{ prod.name }}" style="width:100%; height:100%; object-fit:cover;">
+                {% else %}
+                  <div style="width:100%; height:100%; display:flex; align-items:center; justify-content:center; font-size:14px;">📦</div>
+                {% endif %}
+              </div>
+            </td>
+            <td>
+              <div style="font-weight: 600; font-size: 0.95rem;">
+                <a href="/product/{{ prod.slug }}" target="_blank" style="color: var(--text-primary);">
+                  {{ prod.name }} ↗
+                </a>
+              </div>
+              <div class="text-xs text-muted">SKU: {{ prod.sku or '-' }} • Urutan: {{ prod.sort_order }}</div>
+            </td>
+            <td>
+              <span class="badge badge-neutral">{{ prod.category_name or 'Uncategorized' }}</span>
+            </td>
+            <td style="font-weight: 500;">Rp {{ "{:,}".format(prod.regular_price).replace(',', '.') }}</td>
+            <td>
+              {% if prod.sale_price and prod.sale_price < prod.regular_price %}
+                <span style="color: var(--danger); font-weight: 600;">
+                  Rp {{ "{:,}".format(prod.sale_price).replace(',', '.') }}
+                </span>
+              {% else %}
+                <span class="text-muted">-</span>
+              {% endif %}
+            </td>
+            <td>
+              {% if prod.stock_keys > 0 %}
+                <span class="badge badge-success">{{ prod.stock_keys }} Keys</span>
+              {% else %}
+                <span class="badge badge-warning">On-Demand</span>
+              {% endif %}
+            </td>
+            <td style="text-align: center;">
+              <!-- Quick Switch Toggle -->
+              <label class="switch-toggle" title="Aktifkan atau Nonaktifkan Produk di Toko">
+                <input type="checkbox" onchange="toggleProductActive({{ prod.id }}, this)" {% if prod.status == 'active' %}checked{% endif %}>
+                <span class="switch-slider"></span>
+              </label>
+            </td>
+            <td style="text-align: right; white-space: nowrap;">
+              <a href="/admin/products/{{ prod.id }}/edit" class="btn btn-secondary btn-sm" style="padding: 4px 10px; font-size: 11px;">Edit</a>
+              <button type="button" onclick="deleteProduct({{ prod.id }}, '{{ prod.name }}')" class="btn btn-subtle btn-sm" style="padding: 4px 8px; font-size: 11px; color: var(--danger);" title="Hapus">
+                Hapus
+              </button>
+            </td>
+          </tr>
+        {% endfor %}
+      {% else %}
+        <tr>
+          <td colspan="8" style="text-align: center; padding: 48px 20px; color: var(--text-muted);">
+            Belum ada produk yang ditemukan. Klik "+ Tambah Produk Baru" untuk mulai mengisi katalog.
+          </td>
+        </tr>
+      {% endif %}
+    </tbody>
+  </table>
+</div>
+
+<!-- Pagination Controls -->
+{% if total_pages > 1 %}
+  <div class="pagination-wrapper">
+    {% if page > 1 %}
+      <a href="/admin/products?page={{ page - 1 }}{% if query_q %}&q={{ query_q }}{% endif %}{% if query_status %}&status={{ query_status }}{% endif %}" class="pagination-btn">← Sebelumnya</a>
+    {% endif %}
+
+    {% for p in range(1, total_pages + 1) %}
+      <a href="/admin/products?page={{ p }}{% if query_q %}&q={{ query_q }}{% endif %}{% if query_status %}&status={{ query_status }}{% endif %}" class="pagination-btn {% if p == page %}active{% endif %}">{{ p }}</a>
+    {% endfor %}
+
+    {% if page < total_pages %}
+      <a href="/admin/products?page={{ page + 1 }}{% if query_q %}&q={{ query_q }}{% endif %}{% if query_status %}&status={{ query_status }}{% endif %}" class="pagination-btn">Selanjutnya →</a>
+    {% endif %}
+  </div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+async function deleteProduct(productId, name) {
+  if (!confirm(`Yakin ingin menghapus produk "${name}"? Tindakan ini akan menghapus seluruh data dan foto produk secara permanen.`)) return;
+
+  try {
+    const res = await fetch(`/api/admin/products/${productId}`, {
+      method: 'DELETE'
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.detail || 'Gagal menghapus produk');
+    
+    showToast('Produk berhasil dihapus!', 'info');
+    window.location.reload();
+  } catch (err) {
+    showToast(err.message, 'error');
+  }
+}
+</script>
+{% endblock %}

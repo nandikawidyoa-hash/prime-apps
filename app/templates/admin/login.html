@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Login — {{ store_settings.store_name or 'PRIME APPS' }}</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+  <meta name="robots" content="noindex, nofollow">
+</head>
+<body style="display: flex; align-items: center; justify-content: center; min-height: 100vh; background: var(--bg-secondary);">
+  <div style="width: 100%; max-width: 420px; padding: 20px;">
+    <div style="background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: var(--radius-xl); padding: 36px; box-shadow: var(--shadow-lg);">
+      <div style="text-align: center; margin-bottom: 28px;">
+        <div class="brand-icon" style="margin: 0 auto 12px; width: 48px; height: 48px; font-size: 22px;">P</div>
+        <h2 style="font-size: 1.5rem; margin-bottom: 6px;">Admin Backoffice</h2>
+        <p class="text-xs text-muted">Portal manajemen resmi {{ store_settings.store_name or 'PRIME APPS' }}</p>
+      </div>
+
+      <form id="admin-login-form" onsubmit="handleAdminLogin(event)">
+        <div class="form-group">
+          <label class="form-label">Email Administrator</label>
+          <input type="email" id="admin-email" required placeholder="admin@primeapps.id" class="form-input">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Password</label>
+          <input type="password" id="admin-password" required placeholder="••••••••" class="form-input">
+        </div>
+
+        <button type="submit" id="admin-submit-btn" class="btn btn-primary" style="width: 100%; margin-top: 10px;">
+          Masuk ke Dashboard Admin
+        </button>
+      </form>
+
+      <div style="margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--border-subtle); text-align: center;">
+        <a href="/" class="text-xs text-muted">← Kembali ke Halaman Toko</a>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast-container" class="toast-container"></div>
+  <script src="/static/js/app.js"></script>
+  <script>
+  async function handleAdminLogin(e) {
+    e.preventDefault();
+    const btn = document.getElementById('admin-submit-btn');
+    btn.disabled = true;
+    btn.textContent = 'Memvalidasi...';
+
+    try {
+      const res = await fetch('/api/auth/admin-login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: document.getElementById('admin-email').value.trim(),
+          password: document.getElementById('admin-password').value
+        })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.detail || 'Email atau password salah / hak akses ditolak');
+
+      showToast('Autentikasi admin berhasil!', 'success');
+      setTimeout(() => window.location.href = '/admin', 600);
+    } catch (err) {
+      showToast(err.message, 'error');
+      btn.disabled = false;
+      btn.textContent = 'Masuk ke Dashboard Admin';
+    }
+  }
+  </script>
+</body>
+</html>

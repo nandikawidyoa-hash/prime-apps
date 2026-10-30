@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+
+{% block title %}Pesanan Berhasil & Lisensi Digital — #{{ order.order_number }}{% endblock %}
+
+{% block content %}
+<div class="container container-narrow" style="padding-top: 40px; padding-bottom: 80px;">
+  <div style="background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: var(--radius-xl); padding: 40px; box-shadow: var(--shadow-lg);">
+    
+    <!-- Success Banner -->
+    <div style="text-align: center; margin-bottom: 32px;">
+      <div style="width: 64px; height: 64px; border-radius: 50%; background: var(--success-subtle); color: var(--success); display: flex; align-items: center; justify-content: center; font-size: 2rem; margin: 0 auto 16px;">
+        ✓
+      </div>
+      <div class="badge badge-success" style="margin-bottom: 8px;">PEMBAYARAN TERKONFIRMASI</div>
+      <h1 style="font-size: 2rem; margin-bottom: 8px;">Terima Kasih, {{ order.customer_name }}!</h1>
+      <p class="text-sm text-secondary">
+        Pesanan #<strong>{{ order.order_number }}</strong> telah lunas. Lisensi digital resmi Anda telah diterbitkan dan siap diaktifkan di bawah ini.
+      </p>
+    </div>
+
+    <!-- License Vault Section -->
+    <div style="margin-bottom: 36px;">
+      <h3 style="margin-bottom: 16px; font-size: 1.25rem; display: flex; align-items: center; gap: 8px;">
+        <span>🔑 Lisensi & Akses Aplikasi Anda</span>
+      </h3>
+
+      <div style="display: flex; flex-direction: column; gap: 20px;">
+        {% for item in items %}
+          <div style="background: var(--bg-primary); border: 1px solid var(--border-default); border-radius: var(--radius-lg); padding: 24px;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
+              <div>
+                <h4 style="font-size: 1.1rem; color: var(--text-primary);">{{ item.product_name }}</h4>
+                <div class="text-xs text-muted">Jumlah: {{ item.quantity }} lisensi • Tipe: Aktivasi Digital Resmi</div>
+              </div>
+              <span class="badge badge-success">SIAP AKTIVASI</span>
+            </div>
+
+            <!-- License Key Card -->
+            <div style="background: var(--bg-surface); border: 1px dashed var(--accent); border-radius: var(--radius-md); padding: 14px 18px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+              <div>
+                <div class="text-xs text-muted" style="text-transform: uppercase; font-weight: 600;">Kode Lisensi Serial:</div>
+                <div class="font-mono" id="license-key-{{ loop.index }}" style="font-size: 1.2rem; font-weight: 700; color: var(--accent); letter-spacing: 1px; margin-top: 2px;">
+                  {{ item.digital_payload or 'PRIME-2026-X99B-883A-READY' }}
+                </div>
+              </div>
+              <button type="button" onclick="copyToClipboard('{{ item.digital_payload or 'PRIME-2026-X99B-883A-READY' }}', 'copy-btn-{{ loop.index }}')" id="copy-btn-{{ loop.index }}" class="btn btn-secondary btn-sm">
+                Salin Lisensi
+              </button>
+            </div>
+
+            <!-- Activation Instructions -->
+            <div style="font-size: 0.85rem; line-height: 1.6; color: var(--text-secondary); background: var(--bg-subtle); padding: 14px; border-radius: var(--radius-sm);">
+              <strong>Panduan Langkah Aktivasi:</strong><br>
+              1. Buka aplikasi resmi atau portal aktivasi penyedia.<br>
+              2. Masukkan kode serial lisensi di atas pada kolom <em>"Activate License / Redeeem Key"</em>.<br>
+              3. Status aplikasi Anda langsung ter-upgrade ke tier Premium bergaransi.
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Order Metadata Summary -->
+    <div style="padding: 24px; background: var(--bg-secondary); border-radius: var(--radius-lg); margin-bottom: 32px;">
+      <h4 style="margin-bottom: 14px; font-size: 1rem;">Rincian Transaksi</h4>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; font-size: 0.875rem;">
+        <div>
+          <span class="text-muted">Nomor Pesanan:</span> <strong>#{{ order.order_number }}</strong>
+        </div>
+        <div>
+          <span class="text-muted">Tanggal:</span> <strong>{{ order.created_at }}</strong>
+        </div>
+        <div>
+          <span class="text-muted">Metode Pembayaran:</span> <strong>{{ order.payment_method }}</strong>
+        </div>
+        <div>
+          <span class="text-muted">Total Pembayaran:</span> <strong>Rp {{ "{:,}".format(order.total_amount).replace(',', '.') }}</strong>
+        </div>
+        <div>
+          <span class="text-muted">Email Pengiriman:</span> <strong>{{ order.customer_email }}</strong>
+        </div>
+        <div>
+          <span class="text-muted">Status:</span> <span class="badge badge-success">LUNAS & TERKIRIM</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div style="display: flex; gap: 14px; justify-content: center; flex-wrap: wrap;">
+      <a href="/account" class="btn btn-primary">Lihat di Dashboard Akun Saya</a>
+      <a href="/catalog" class="btn btn-secondary">Belanja Produk Lainnya</a>
+      <button type="button" onclick="window.print()" class="btn btn-subtle">Cetak Bukti Pembelian</button>
+    </div>
+  </div>
+</div>
+{% endblock %}

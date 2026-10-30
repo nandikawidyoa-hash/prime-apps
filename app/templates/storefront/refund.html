@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}Kebijakan Garansi & Refund — {{ store_settings.store_name or 'PRIME APPS' }}{% endblock %}
+
+{% block content %}
+<div class="container container-narrow" style="padding-top: 50px; padding-bottom: 80px;">
+  <div style="margin-bottom: 32px;">
+    <h1>Kebijakan Garansi & Pengembalian Dana</h1>
+    <p class="text-sm">Komitmen kami untuk memberikan kepastian dan kenyamanan transaksi produk digital.</p>
+  </div>
+
+  <div style="background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: var(--radius-xl); padding: 36px; line-height: 1.8; color: var(--text-secondary); display: flex; flex-direction: column; gap: 20px;">
+    <h3 style="color: var(--text-primary); font-size: 1.2rem;">1. Ketentuan Garansi Lisensi</h3>
+    <p>
+      Seluruh produk lisensi digital yang dibeli melalui platform kami dilindungi garansi aktivasi selama masa aktif yang tertera pada deskripsi produk (misalnya: 30 hari, 1 tahun, atau lifetime).
+    </p>
+
+    <h3 style="color: var(--text-primary); font-size: 1.2rem;">2. Syarat Penggantian Produk (Replacement)</h3>
+    <p>
+      Jika serial lisensi yang Anda terima mengalami invalid key, kendala aktivasi pada software resmi, atau kendala server penyedia dalam masa garansi, kami akan memberikan kode lisensi pengganti baru dalam waktu maksimal 1x24 jam sejak laporan diterima.
+    </p>
+
+    <h3 style="color: var(--text-primary); font-size: 1.2rem;">3. Syarat Pengembalian Dana (Refund)</h3>
+    <p>
+      Pengembalian dana 100% dapat diajukan apabila:
+    </p>
+    <ul style="padding-left: 20px;">
+      <li>Stok pengganti tidak tersedia atau kami tidak dapat menyelesaikan kendala aktivasi dalam waktu 48 jam.</li>
+      <li>Terjadi pembayaran ganda (double payment) akibat kendala jaringan.</li>
+    </ul>
+
+    <h3 style="color: var(--text-primary); font-size: 1.2rem;">4. Cara Mengajukan Klaim</h3>
+    <p>
+      Silakan hubungi WhatsApp Customer Care dengan menyertakan Nomor Pesanan (#PRIME-XXXX) dan tangkapan layar (screenshot) pesan error pada software. Tim kami akan segera memproses verifikasi dan klaim Anda.
+    </p>
+  </div>
+</div>
+{% endblock %}

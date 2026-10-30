@@ -1,0 +1,240 @@
+{% extends "admin/base_admin.html" %}
+
+{% block page_title %}Pengaturan Toko & Keamanan{% endblock %}
+{% block page_subtitle %}Konfigurasi identitas branding, kontak, rekening, serta akun administrator{% endblock %}
+
+{% block content %}
+<div style="display: grid; grid-template-columns: 1.5fr 1fr; gap: 32px; align-items: start;">
+  <!-- Left Column: Branding & Content -->
+  <div>
+    <form id="store-settings-form" onsubmit="handleSaveSettings(event)">
+      <!-- General Branding -->
+      <div style="background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); padding: 26px; margin-bottom: 24px;">
+        <h3 style="margin-bottom: 18px; font-size: 1.15rem;">Identitas Toko & Branding</h3>
+
+        <div class="form-group">
+          <label class="form-label">Nama Webstore *</label>
+          <input type="text" id="set-store-name" required value="{{ settings.store_name or 'PRIME APPS' }}" class="form-input">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Tagline Webstore</label>
+          <input type="text" id="set-store-tagline" value="{{ settings.store_tagline or 'Toko Digital Premium & Lisensi Aplikasi Resmi' }}" class="form-input">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Deskripsi Toko (Footer & Meta)</label>
+          <textarea id="set-store-desc" rows="3" class="form-textarea">{{ settings.store_description or 'Distribusi resmi lisensi software original, tools AI, dan produk digital premium bergaransi.' }}</textarea>
+        </div>
+      </div>
+
+      <!-- Hero Banner Customization -->
+      <div style="background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); padding: 26px; margin-bottom: 24px;">
+        <h3 style="margin-bottom: 18px; font-size: 1.15rem;">Banner & Teks Beranda (Hero Section)</h3>
+
+        <div class="form-group">
+          <label class="form-label">Badge Label Hero</label>
+          <input type="text" id="set-hero-badge" value="{{ settings.hero_badge or 'Katalog Digital Premium 2026' }}" class="form-input">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Judul Utama Hero (H1)</label>
+          <input type="text" id="set-hero-title" value="{{ settings.hero_title or 'Aplikasi & Tools Digital Terbaik untuk Produktivitas Anda.' }}" class="form-input">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Subjudul Penjelasan Hero</label>
+          <textarea id="set-hero-sub" rows="3" class="form-textarea">{{ settings.hero_subtitle or 'Dapatkan lisensi original untuk AI tools, developer software, dan aplikasi desain dengan garansi penuh dan pengiriman digital otomatis tanpa menunggu.' }}</textarea>
+        </div>
+      </div>
+
+      <!-- Bank Transfer Details -->
+      <div style="background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); padding: 26px; margin-bottom: 24px;">
+        <h3 style="margin-bottom: 18px; font-size: 1.15rem;">Informasi Rekening Bank Toko (Manual Transfer)</h3>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+          <div class="form-group">
+            <label class="form-label">Nama Bank</label>
+            <input type="text" id="set-bank-name" value="{{ settings.bank_name or 'Bank Central Asia (BCA)' }}" class="form-input">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Nomor Rekening</label>
+            <input type="text" id="set-bank-num" value="{{ settings.bank_account_number or '8291-0029-381' }}" class="form-input font-mono">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Atas Nama Rekening</label>
+          <input type="text" id="set-bank-holder" value="{{ settings.bank_account_holder or 'PT PRIME DIGITAL NUSANTARA' }}" class="form-input">
+        </div>
+      </div>
+
+      <!-- Save Store Settings Button -->
+      <div style="background: var(--bg-surface); padding: 20px; border-radius: var(--radius-lg); border: 1px solid var(--border-default); box-shadow: var(--shadow-md); margin-bottom: 24px;">
+        <button type="submit" id="save-settings-btn" class="btn btn-primary" style="width: 100%;">
+          💾 Simpan Seluruh Pengaturan Toko
+        </button>
+        <p class="text-xs text-muted" style="text-align: center; margin-top: 10px;">
+          Perubahan langsung aktif di storefront seketika tanpa perlu restart server.
+        </p>
+      </div>
+    </form>
+  </div>
+
+  <!-- Right Column: Contacts, Maintenance & Admin Account Security -->
+  <div>
+    <!-- Contacts & WhatsApp Settings -->
+    <div style="background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); padding: 24px; margin-bottom: 24px;">
+      <h4 style="margin-bottom: 16px;">Kontak & Pemesanan WhatsApp</h4>
+
+      <div class="form-group">
+        <label class="form-label">Nomor WhatsApp CS / Admin *</label>
+        <input type="text" id="set-contact-wa" value="{{ settings.contact_whatsapp or '+62 812-3456-7890' }}" class="form-input">
+        <span class="text-xs text-muted">Format internasional (contoh: +62 812-xxxx-xxxx)</span>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Tombol Pesan Cepat via WhatsApp</label>
+        <select id="set-wa-order" class="form-select">
+          <option value="1" {% if settings.wa_order_enabled != '0' %}selected{% endif %}>Aktifkan di Halaman Produk</option>
+          <option value="0" {% if settings.wa_order_enabled == '0' %}selected{% endif %}>Nonaktifkan</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Email Support Resmi</label>
+        <input type="email" id="set-contact-email" value="{{ settings.contact_email or 'support@primeapps.id' }}" class="form-input">
+      </div>
+    </div>
+
+    <!-- System & Maintenance -->
+    <div style="background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); padding: 24px; margin-bottom: 24px;">
+      <h4 style="margin-bottom: 16px;">Operasional Toko</h4>
+
+      <div class="form-group">
+        <label class="form-label">Mode Pemeliharaan (Maintenance Mode)</label>
+        <select id="set-maintenance" class="form-select">
+          <option value="0" {% if settings.maintenance_mode != '1' %}selected{% endif %}>Toko Buka (Aktif Normal)</option>
+          <option value="1" {% if settings.maintenance_mode == '1' %}selected{% endif %}>Mode Pemeliharaan (Toko Ditutup Sementara)</option>
+        </select>
+        <span class="text-xs text-muted">Jika diaktifkan, pengunjung umum akan melihat layar pemeliharaan dengan info kontak WA.</span>
+      </div>
+    </div>
+
+    <!-- Admin Account Security (Ganti Email & Password Admin) -->
+    <div style="background: var(--bg-surface); border: 2px solid var(--color-primary); border-radius: var(--radius-lg); padding: 24px; box-shadow: var(--shadow-md);">
+      <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 16px;">
+        <span style="font-size: 1.5rem;">🔐</span>
+        <div>
+          <h4 style="margin: 0; color: var(--color-primary);">Keamanan Akun Admin</h4>
+          <span class="text-xs text-muted">Ganti email login dan kata sandi backoffice</span>
+        </div>
+      </div>
+
+      <form id="admin-security-form" onsubmit="handleChangeAdminCredentials(event)">
+        <div class="form-group">
+          <label class="form-label">Email Admin Login *</label>
+          <input type="email" id="admin-new-email" required value="{{ current_admin.email }}" class="form-input font-mono">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Password Saat Ini (Verifikasi) *</label>
+          <input type="password" id="admin-curr-pwd" required placeholder="Masukkan password lama" class="form-input">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Password Baru (Minimal 6 Karakter) *</label>
+          <input type="password" id="admin-new-pwd" required placeholder="Kombinasi huruf & angka baru" class="form-input">
+        </div>
+
+        <button type="submit" id="admin-cred-btn" class="btn btn-primary" style="width: 100%; margin-top: 8px;">
+          🔑 Perbarui Akun & Password Admin
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+async function handleSaveSettings(e) {
+  e.preventDefault();
+  const btn = document.getElementById('save-settings-btn');
+  btn.disabled = true;
+  btn.textContent = 'Menyimpan...';
+
+  const payload = {
+    store_name: document.getElementById('set-store-name').value.trim(),
+    store_tagline: document.getElementById('set-store-tagline').value.trim(),
+    store_description: document.getElementById('set-store-desc').value.trim(),
+    hero_badge: document.getElementById('set-hero-badge').value.trim(),
+    hero_title: document.getElementById('set-hero-title').value.trim(),
+    hero_subtitle: document.getElementById('set-hero-sub').value.trim(),
+    contact_whatsapp: document.getElementById('set-contact-wa').value.trim(),
+    contact_email: document.getElementById('set-contact-email').value.trim(),
+    bank_name: document.getElementById('set-bank-name').value.trim(),
+    bank_account_number: document.getElementById('set-bank-num').value.trim(),
+    bank_account_holder: document.getElementById('set-bank-holder').value.trim(),
+    maintenance_mode: document.getElementById('set-maintenance').value,
+    wa_order_enabled: document.getElementById('set-wa-order').value
+  };
+
+  try {
+    const res = await fetch('/api/admin/settings', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.detail || 'Gagal menyimpan pengaturan');
+
+    showToast('Pengaturan toko berhasil diperbarui!', 'success');
+    setTimeout(() => window.location.reload(), 800);
+  } catch (err) {
+    showToast(err.message, 'error');
+    btn.disabled = false;
+    btn.textContent = '💾 Simpan Seluruh Pengaturan Toko';
+  }
+}
+
+async function handleChangeAdminCredentials(e) {
+  e.preventDefault();
+  const btn = document.getElementById('admin-cred-btn');
+  const email = document.getElementById('admin-new-email').value.trim();
+  const current_password = document.getElementById('admin-curr-pwd').value.trim();
+  const new_password = document.getElementById('admin-new-pwd').value.trim();
+
+  if (!current_password) {
+    showToast('Password lama wajib diisi untuk verifikasi!', 'error');
+    return;
+  }
+  if (new_password.length < 6) {
+    showToast('Password baru minimal 6 karakter!', 'error');
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = 'Memproses...';
+
+  try {
+    const res = await fetch('/api/admin/change-credentials', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, current_password, new_password })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.detail || 'Gagal mengubah email/password');
+
+    showToast('✅ Berhasil! Email dan password admin telah diperbarui.', 'success');
+    document.getElementById('admin-curr-pwd').value = '';
+    document.getElementById('admin-new-pwd').value = '';
+  } catch (err) {
+    showToast(err.message, 'error');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '🔑 Perbarui Akun & Password Admin';
+  }
+}
+</script>
+{% endblock %}

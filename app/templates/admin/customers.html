@@ -1,0 +1,106 @@
+{% extends "admin/base_admin.html" %}
+
+{% block page_title %}Manajemen Pelanggan{% endblock %}
+{% block page_subtitle %}Daftar pengguna terdaftar dan riwayat belanja transaksi mereka{% endblock %}
+
+{% block content %}
+<!-- Search and Counter Bar -->
+<div style="background: var(--bg-surface); padding: 18px; border-radius: var(--radius-lg); border: 1px solid var(--border-subtle); margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px;">
+  <form method="GET" action="/admin/customers" style="display: flex; gap: 10px; flex: 1; max-width: 500px;">
+    <input type="text" name="q" value="{{ query_q or '' }}" placeholder="Cari nama, email, nomor WhatsApp..." class="form-input" style="flex: 1; padding: 8px 12px;">
+    <button type="submit" class="btn btn-secondary btn-sm">Cari</button>
+    {% if query_q %}
+      <a href="/admin/customers" class="btn btn-subtle btn-sm">Reset</a>
+    {% endif %}
+  </form>
+
+  <span class="text-xs text-muted">Total: <strong>{{ total_count }}</strong> pelanggan</span>
+</div>
+
+<div class="table-container">
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Pelanggan</th>
+        <th>Kontak WhatsApp</th>
+        <th>Role Akun</th>
+        <th>Total Pesanan</th>
+        <th>Total Belanja</th>
+        <th>Status</th>
+        <th>Bergabung</th>
+        <th style="text-align: right;">Aksi</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% if customers %}
+        {% for c in customers %}
+          <tr>
+            <td>
+              <div style="font-weight: 600;">{{ c.full_name }}</div>
+              <div class="text-xs text-muted">{{ c.email }}</div>
+            </td>
+            <td>
+              {% if c.phone %}
+                <a href="https://wa.me/{{ c.phone.replace('+', '').replace('-', '').replace(' ', '') }}" target="_blank" style="color: var(--accent); font-weight: 500;">
+                  {{ c.phone }}
+                </a>
+              {% else %}
+                <span class="text-muted">-</span>
+              {% endif %}
+            </td>
+            <td>
+              <span class="badge {% if c.role == 'superadmin' %}badge-danger{% elif c.role == 'admin' %}badge-accent{% else %}badge-neutral{% endif %}">
+                {{ c.role }}
+              </span>
+            </td>
+            <td>{{ c.total_orders }}x</td>
+            <td style="font-weight: 600; color: var(--accent);">
+              Rp {{ "{:,}".format(c.total_spent).replace(',', '.') }}
+            </td>
+            <td>
+              {% if c.status == 'active' %}
+                <span class="badge badge-success">Aktif</span>
+              {% else %}
+                <span class="badge badge-danger">Suspended</span>
+              {% endif %}
+            </td>
+            <td class="text-xs text-muted">{{ c.created_at }}</td>
+            <td style="text-align: right; white-space: nowrap;">
+              {% if c.role != 'superadmin' %}
+                <button type="button" onclick="toggleCustomerStatus({{ c.id }}, '{{ c.status }}')" class="btn btn-subtle btn-sm" style="font-size: 11px; padding: 4px 8px; {% if c.status == 'active' %}color: var(--danger);{% else %}color: var(--success);{% endif %}">
+                  {% if c.status == 'active' %}Bekukan{% else %}Aktifkan{% endif %}
+                </button>
+              {% else %}
+                <span class="text-xs text-muted">Superadmin</span>
+              {% endif %}
+            </td>
+          </tr>
+        {% endfor %}
+      {% else %}
+        <tr>
+          <td colspan="8" style="text-align: center; padding: 32px; color: var(--text-muted);">
+            Belum ada data pelanggan yang sesuai.
+          </td>
+        </tr>
+      {% endif %}
+    </tbody>
+  </table>
+</div>
+
+<!-- Pagination Controls -->
+{% if total_pages > 1 %}
+  <div class="pagination-wrapper">
+    {% if page > 1 %}
+      <a href="/admin/customers?page={{ page - 1 }}{% if query_q %}&q={{ query_q }}{% endif %}" class="pagination-btn">← Sebelumnya</a>
+    {% endif %}
+
+    {% for p in range(1, total_pages + 1) %}
+      <a href="/admin/customers?page={{ p }}{% if query_q %}&q={{ query_q }}{% endif %}" class="pagination-btn {% if p == page %}active{% endif %}">{{ p }}</a>
+    {% endfor %}
+
+    {% if page < total_pages %}
+      <a href="/admin/customers?page={{ page + 1 }}{% if query_q %}&q={{ query_q }}{% endif %}" class="pagination-btn">Selanjutnya →</a>
+    {% endif %}
+  </div>
+{% endif %}
+{% endblock %}

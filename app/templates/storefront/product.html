@@ -1,0 +1,291 @@
+{% extends "base.html" %}
+
+{% block title %}{{ product.seo_title or product.name }} — {{ store_settings.store_name or 'PRIME APPS' }}{% endblock %}
+{% block meta_description %}{{ product.seo_description or product.short_description }}{% endblock %}
+
+{% block content %}
+<div class="container" style="padding-top: 36px; padding-bottom: 80px;">
+  <!-- Breadcrumb -->
+  <div style="display: flex; gap: 8px; font-size: 0.825rem; color: var(--text-muted); margin-bottom: 24px; flex-wrap: wrap;">
+    <a href="/">Beranda</a>
+    <span>/</span>
+    <a href="/catalog">Katalog</a>
+    <span>/</span>
+    <a href="/catalog?category={{ product.category_slug }}">{{ product.category_name or 'Aplikasi' }}</a>
+    <span>/</span>
+    <span style="color: var(--text-primary); font-weight: 500;">{{ product.name }}</span>
+  </div>
+
+  <!-- Product Hero Grid -->
+  <div style="display: grid; grid-template-columns: 1.1fr 1fr; gap: 40px; align-items: start; margin-bottom: 50px;">
+    <!-- Photo Gallery -->
+    <div>
+      <div class="gallery-container">
+        <!-- Thumbnail column -->
+        <div class="gallery-thumbs">
+          {% if images %}
+            {% for img in images %}
+              <div class="gallery-thumb-item {% if loop.first %}active{% endif %}" onclick="switchMainImage(this, '{{ img.image_url }}')">
+                <img src="{{ img.thumbnail_url or img.image_url }}" alt="{{ img.alt_text or product.name }}" style="width: 100%; height: 100%; object-fit: cover;">
+              </div>
+            {% endfor %}
+          {% else %}
+            <div class="gallery-thumb-item active">
+              <div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: var(--bg-subtle);">📦</div>
+            </div>
+          {% endif %}
+        </div>
+
+        <!-- Main Photo View -->
+        <div class="gallery-main-view">
+          {% if images %}
+            <img id="product-gallery-main" src="{{ images[0].image_url }}" alt="{{ product.name }}" class="gallery-main-img">
+          {% else %}
+            <div style="font-size: 4rem; color: var(--text-muted);">📦</div>
+          {% endif %}
+        </div>
+      </div>
+      
+      <p style="font-size: 0.75rem; color: var(--text-muted); text-align: center; margin-top: 10px;">
+        💡 Klik thumbnail di samping untuk melihat tangkapan layar fitur aplikasi.
+      </p>
+    </div>
+
+    <!-- Product Info & Purchase Panel -->
+    <div>
+      <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 10px; flex-wrap: wrap;">
+        <span class="badge badge-accent">{{ product.category_name or 'Digital App' }}</span>
+        {% if product.brand_name %}
+          <span class="badge badge-neutral">{{ product.brand_name }}</span>
+        {% endif %}
+        {% if product.stock_count > 0 %}
+          <span class="badge badge-success">Stok Siap: {{ product.stock_count }} Lisensi</span>
+        {% else %}
+          <span class="badge badge-warning">Aktivasi Sesuai Pesanan</span>
+        {% endif %}
+        <span class="rating-badge">★ 4.9 (120+ Ulasan Positif)</span>
+      </div>
+
+      <h1 style="font-size: clamp(1.8rem, 3vw, 2.3rem); margin-bottom: 12px; line-height: 1.2;">{{ product.name }}</h1>
+      
+      <p style="font-size: 1rem; color: var(--text-secondary); margin-bottom: 20px; line-height: 1.6;">
+        {{ product.short_description or 'Solusi perangkat lunak digital premium dengan akses legal dan pengiriman instan.' }}
+      </p>
+
+      <!-- Multiple Pricing Options / Variants Selector -->
+      {% if variants %}
+        <div style="margin-bottom: 20px;">
+          <label style="font-size: 0.85rem; font-weight: 600; display: block; margin-bottom: 8px;">Pilihan Paket / Durasi Lisensi:</label>
+          <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+            {% for v in variants %}
+              <button type="button" class="variant-pill-btn {% if loop.first %}active{% endif %}"
+                      onclick="selectVariantOption(this, {{ v.id }}, '{{ v.name }}', {{ v.regular_price }}, {{ v.sale_price if v.sale_price else 'null' }})">
+                <span style="font-weight: 600;">{{ v.name }}</span>
+                <span style="font-size: 0.775rem; color: var(--text-secondary);">Rp {{ "{:,}".format(v.sale_price or v.regular_price).replace(',', '.') }}</span>
+              </button>
+            {% endfor %}
+          </div>
+        </div>
+      {% endif %}
+
+      <!-- Pricing Box -->
+      <div style="background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); padding: 22px; margin-bottom: 20px;">
+        <div style="display: flex; align-items: baseline; gap: 10px; margin-bottom: 6px; flex-wrap: wrap;">
+          {% set init_reg = variants[0].regular_price if variants else product.regular_price %}
+          {% set init_sale = variants[0].sale_price if variants else product.sale_price %}
+          
+          <span id="price-display-val" style="font-size: 2.1rem; font-weight: 700; color: var(--text-primary);">
+            Rp {{ "{:,}".format(init_sale if init_sale else init_reg).replace(',', '.') }}
+          </span>
+
+          <span id="price-original-val" style="font-size: 1rem; color: var(--text-muted); text-decoration: line-through; {% if not init_sale or init_sale >= init_reg %}display:none;{% endif %}">
+            Rp {{ "{:,}".format(init_reg).replace(',', '.') }}
+          </span>
+
+          <span id="price-discount-badge" class="badge badge-danger" style="{% if not init_sale or init_sale >= init_reg %}display:none;{% endif %}">
+            {% if init_sale and init_sale < init_reg %}
+              Hemat {{ "{:.0f}".format(((init_reg - init_sale) / init_reg) * 100) }}%
+            {% endif %}
+          </span>
+        </div>
+        <p style="font-size: 0.8rem; color: var(--text-muted);">Harga nett sudah termasuk garansi aktivasi dan panduan setup lengkap.</p>
+
+        <!-- Digital Delivery Guarantee Callout -->
+        <div style="display: flex; gap: 10px; align-items: flex-start; padding: 12px 14px; background: var(--bg-subtle); border-radius: var(--radius-md); margin: 16px 0;">
+          <div style="font-size: 1.25rem;">⚡</div>
+          <div style="font-size: 0.825rem; line-height: 1.45;">
+            <strong>Pengiriman Digital Instan:</strong>
+            {% if product.delivery_type == 'license_key' %}
+              Kode serial lisensi otomatis ditampilkan di layar Anda setelah pembayaran berhasil.
+            {% elif product.delivery_type == 'account_invite' %}
+              Undangan akses tim / workspace dikirim ke email pembeli secara instan.
+            {% else %}
+              Tautan unduhan dan instruksi aktivasi dikirim langsung ke dashboard & email Anda.
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div style="display: flex; gap: 10px;">
+          <button type="button" onclick="handleAddToCartWithVariant()" class="btn btn-secondary btn-lg" style="flex: 1;">
+            + Keranjang
+          </button>
+          <button type="button" onclick="handleBuyNowWithVariant()" class="btn btn-primary btn-lg" style="flex: 1.2;">
+            Beli Sekarang →
+          </button>
+        </div>
+
+        <!-- WhatsApp Direct Order Button -->
+        <button type="button" onclick="handleWhatsAppOrderWithVariant()" class="btn btn-whatsapp btn-lg" style="width: 100%; margin-top: 10px;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.711 2.598 2.664-.698c.99.54 1.77.829 2.796.829h.005c3.18 0 5.767-2.586 5.768-5.766 0-3.18-2.587-5.766-5.773-5.766zm9.969 5.828c0 5.523-4.477 10-10 10-1.782 0-3.45-.469-4.898-1.291l-5.102 1.336 1.365-4.985c-.914-1.492-1.434-3.242-1.434-5.06 0-5.523 4.477-10 10-10s10 4.477 10 10z"/></svg>
+          <span>Pesan Cepat via WhatsApp</span>
+        </button>
+      </div>
+
+      <!-- Trust Badges -->
+      <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; font-size: 0.775rem; text-align: center;">
+        <div style="padding: 10px 8px; background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: var(--radius-md);">
+          🔒 <strong>Garansi 100%</strong><br><span class="text-muted">Ganti Baru / Refund</span>
+        </div>
+        <div style="padding: 10px 8px; background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: var(--radius-md);">
+          ⚡ <strong>Aktivasi Kilat</strong><br><span class="text-muted">Proses Otomatis</span>
+        </div>
+        <div style="padding: 10px 8px; background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: var(--radius-md);">
+          🤝 <strong>Bantuan 24/7</strong><br><span class="text-muted">Support WhatsApp</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Detailed Tabs / Editorial Content -->
+  <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 36px; margin-top: 36px; padding-top: 36px; border-top: 1px solid var(--border-subtle);">
+    <div>
+      <h3 style="margin-bottom: 16px; font-size: 1.3rem;">Deskripsi & Spesifikasi Produk</h3>
+      <div style="font-size: 0.95rem; color: var(--text-secondary); line-height: 1.8; margin-bottom: 28px; white-space: pre-line;">
+        {{ product.description or 'Aplikasi ini dirancang untuk memaksimalkan efisiensi dan alur kerja profesional. Menggunakan standar keamanan tertinggi dan didukung pembaruan berkala.' }}
+      </div>
+
+      {% if features %}
+        <h3 style="margin-bottom: 16px; font-size: 1.25rem;">Fitur Utama</h3>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 28px;">
+          {% for feature in features %}
+            <div style="display: flex; align-items: center; gap: 8px; padding: 10px 14px; background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); font-size: 0.875rem;">
+              <span style="color: var(--success); font-weight: 700;">✓</span>
+              <span>{{ feature }}</span>
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+
+      <h3 style="margin-bottom: 12px; font-size: 1.25rem;">Panduan Aktivasi & Penggunaan</h3>
+      <div style="padding: 18px; background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); font-size: 0.875rem; line-height: 1.6;">
+        <p style="margin-bottom: 8px;">{{ product.delivery_instructions or '1. Selesaikan pembayaran melalui QRIS atau Virtual Account.\n2. Buka halaman sukses atau cek akun Anda untuk menyalin kode serial.\n3. Masukkan kode pada aplikasi resmi dan nikmati fitur premium Anda.' }}</p>
+        <p class="text-muted" style="font-size: 0.775rem;">Butuh panduan aktivasi dibantu tim kami? Klik tombol "Pesan Cepat via WhatsApp" di atas atau hubungi nomor Customer Care di footer.</p>
+      </div>
+    </div>
+
+    <!-- Related Products Column -->
+    <div>
+      <h3 style="margin-bottom: 16px; font-size: 1.15rem;">Produk Terkait</h3>
+      <div style="display: flex; flex-direction: column; gap: 12px;">
+        {% for rel in related_products %}
+          <div style="display: flex; gap: 12px; padding: 12px; background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); align-items: center;">
+            <div style="width: 54px; height: 54px; border-radius: 8px; overflow: hidden; background: var(--bg-secondary); flex-shrink: 0;">
+              {% if rel.primary_image %}
+                <img src="{{ rel.primary_image }}" alt="{{ rel.name }}" style="width: 100%; height: 100%; object-fit: cover;">
+              {% else %}
+                <div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;">📦</div>
+              {% endif %}
+            </div>
+            <div style="flex: 1; min-width: 0;">
+              <a href="/product/{{ rel.slug }}" style="font-weight: 600; font-size: 0.875rem; color: var(--text-primary); display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                {{ rel.name }}
+              </a>
+              <div style="font-size: 0.825rem; font-weight: 700; color: var(--text-primary); margin-top: 3px;">
+                Rp {{ "{:,}".format(rel.sale_price or rel.regular_price).replace(',', '.') }}
+              </div>
+            </div>
+            <a href="/product/{{ rel.slug }}" class="btn btn-subtle btn-sm" style="padding: 4px 8px; font-size: 11px;">Buka</a>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let currentVariantId = {{ variants[0].id if variants else 'null' }};
+let currentVariantName = '{{ variants[0].name if variants else "" }}';
+let currentPrice = {{ (variants[0].sale_price or variants[0].regular_price) if variants else (product.sale_price or product.regular_price) }};
+let currentRegularPrice = {{ (variants[0].regular_price) if variants else product.regular_price }};
+
+function selectVariantOption(btn, variantId, variantName, regPrice, salePrice) {
+  document.querySelectorAll('.variant-pill-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+
+  currentVariantId = variantId;
+  currentVariantName = variantName;
+  currentPrice = salePrice ? salePrice : regPrice;
+  currentRegularPrice = regPrice;
+
+  // Update DOM Price Display
+  const priceDisplay = document.getElementById('price-display-val');
+  if (priceDisplay) {
+    priceDisplay.textContent = 'Rp ' + currentPrice.toLocaleString('id-ID');
+  }
+
+  const origPriceDisplay = document.getElementById('price-original-val');
+  const discountBadge = document.getElementById('price-discount-badge');
+  if (salePrice && salePrice < regPrice) {
+    if (origPriceDisplay) {
+      origPriceDisplay.textContent = 'Rp ' + regPrice.toLocaleString('id-ID');
+      origPriceDisplay.style.display = 'inline';
+    }
+    if (discountBadge) {
+      const pct = Math.round(((regPrice - salePrice) / regPrice) * 100);
+      discountBadge.textContent = 'Hemat ' + pct + '%';
+      discountBadge.style.display = 'inline-flex';
+    }
+  } else {
+    if (origPriceDisplay) origPriceDisplay.style.display = 'none';
+    if (discountBadge) discountBadge.style.display = 'none';
+  }
+}
+
+function handleAddToCartWithVariant() {
+  const fullPayload = {
+    product_id: {{ product.id }},
+    quantity: 1,
+    variant_id: currentVariantId,
+    variant_name: currentVariantName || null
+  };
+  fetch('/api/cart/items', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(fullPayload)
+  }).then(res => res.json()).then(data => {
+    if (data.status === 'success') {
+      showToast('Produk ' + (currentVariantName ? '(' + currentVariantName + ')' : '') + ' berhasil ditambah ke keranjang!', 'success');
+      Cart.updateBadge(data.total_items);
+    } else {
+      showToast(data.detail || 'Gagal menambahkan produk', 'error');
+    }
+  }).catch(err => showToast(err.message, 'error'));
+}
+
+function handleBuyNowWithVariant() {
+  let url = '/checkout?instant_product_id={{ product.id }}';
+  if (currentVariantId) {
+    url += '&instant_variant_id=' + currentVariantId;
+  }
+  window.location.href = url;
+}
+
+function handleWhatsAppOrderWithVariant() {
+  const productNameWithVar = currentVariantName ? '{{ product.name }} (' + currentVariantName + ')' : '{{ product.name }}';
+  orderViaWhatsApp(productNameWithVar, currentPrice, '{{ product.slug }}', '{{ store_settings.store_name }}', '{{ store_settings.contact_whatsapp }}');
+}
+</script>
+{% endblock %}

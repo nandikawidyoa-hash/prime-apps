@@ -1,0 +1,132 @@
+{% extends "base.html" %}
+
+{% block title %}Keranjang Belanja — {{ store_settings.store_name or 'PRIME APPS' }}{% endblock %}
+
+{% block content %}
+<div class="container" style="padding-top: 40px; padding-bottom: 80px;">
+  <div style="margin-bottom: 32px;">
+    <h1>Keranjang Belanja</h1>
+    <p class="text-sm">Periksa kembali item digital yang ingin Anda beli sebelum menuju pembayaran.</p>
+  </div>
+
+  {% if items %}
+    <div class="cart-layout">
+      <!-- Cart Items List -->
+      <div class="cart-items-card">
+        {% for item in items %}
+          <div class="cart-item-row">
+            <div style="width: 80px; height: 60px; border-radius: var(--radius-sm); overflow: hidden; background: var(--bg-secondary);">
+              {% if item.image_url %}
+                <img src="{{ item.image_url }}" alt="{{ item.name }}" style="width: 100%; height: 100%; object-fit: cover;">
+              {% else %}
+                <div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;">📦</div>
+              {% endif %}
+            </div>
+
+            <div>
+              <a href="/product/{{ item.slug }}" style="font-weight: 600; font-size: 1rem; color: var(--text-primary);">
+                {{ item.name }}
+              </a>
+              <div style="font-size: 0.85rem; color: var(--text-muted); margin-top: 4px;">
+                Rp {{ "{:,}".format(item.price).replace(',', '.') }} / lisensi
+              </div>
+            </div>
+
+            <div style="display: flex; align-items: center; gap: 16px;">
+              <div style="display: flex; align-items: center; border: 1px solid var(--border-default); border-radius: var(--radius-pill); overflow: hidden;">
+                <button type="button" onclick="Cart.update({{ item.product_id }}, {{ item.quantity - 1 }})" class="btn btn-subtle btn-sm" style="padding: 4px 10px; border-radius: 0;">-</button>
+                <span style="padding: 4px 12px; font-weight: 600; font-size: 0.9rem;">{{ item.quantity }}</span>
+                <button type="button" onclick="Cart.update({{ item.product_id }}, {{ item.quantity + 1 }})" class="btn btn-subtle btn-sm" style="padding: 4px 10px; border-radius: 0;">+</button>
+              </div>
+
+              <div style="font-weight: 700; font-size: 1.05rem; min-width: 110px; text-align: right;">
+                Rp {{ "{:,}".format(item.subtotal).replace(',', '.') }}
+              </div>
+
+              <button type="button" onclick="Cart.remove({{ item.product_id }})" class="btn-icon" style="color: var(--danger); width: 34px; height: 34px;" title="Hapus">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+              </button>
+            </div>
+          </div>
+        {% endfor %}
+
+        <!-- Voucher Code Input Box -->
+        <div style="margin-top: 32px; padding-top: 24px; border-top: 1px solid var(--border-subtle); display: flex; gap: 12px;">
+          <input type="text" id="voucher-input" placeholder="Punya kode voucher promo? (Contoh: DISKON10)" class="form-input" style="flex: 1;" value="{{ applied_voucher.code if applied_voucher else '' }}">
+          <button type="button" onclick="applyVoucher()" class="btn btn-secondary">Terapkan Voucher</button>
+        </div>
+      </div>
+
+      <!-- Order Summary Card -->
+      <div class="summary-card">
+        <h3 style="margin-bottom: 20px; font-size: 1.2rem;">Ringkasan Pesanan</h3>
+        
+        <div class="summary-row">
+          <span class="text-secondary">Subtotal Item</span>
+          <span style="font-weight: 600;">Rp {{ "{:,}".format(subtotal).replace(',', '.') }}</span>
+        </div>
+
+        {% if discount_amount > 0 %}
+          <div class="summary-row" style="color: var(--success);">
+            <span>Diskon Voucher ({{ applied_voucher.code }})</span>
+            <span>- Rp {{ "{:,}".format(discount_amount).replace(',', '.') }}</span>
+          </div>
+        {% endif %}
+
+        <div class="summary-row">
+          <span class="text-secondary">Biaya Layanan & Pajak</span>
+          <span style="color: var(--success); font-weight: 500;">Rp 0 (Gratis)</span>
+        </div>
+
+        <div class="summary-row summary-total">
+          <span>Total Bayar</span>
+          <span>Rp {{ "{:,}".format(total_amount).replace(',', '.') }}</span>
+        </div>
+
+        <a href="/checkout" class="btn btn-primary btn-lg" style="width: 100%; margin-top: 24px;">
+          Lanjut ke Pembayaran →
+        </a>
+
+        <p style="font-size: 0.775rem; color: var(--text-muted); text-align: center; margin-top: 14px;">
+          🔒 Pembayaran instan terenkripsi melalui QRIS & Virtual Account.
+        </p>
+      </div>
+    </div>
+  {% else %}
+    <!-- Empty Cart -->
+    <div style="text-align: center; padding: 80px 20px; background: var(--bg-surface); border-radius: var(--radius-xl); border: 1px solid var(--border-subtle); margin: 40px 0;">
+      <div style="font-size: 3.5rem; margin-bottom: 16px;">🛒</div>
+      <h2>Keranjang Anda Masih Kosong</h2>
+      <p style="margin-bottom: 24px; max-width: 400px; margin-left: auto; margin-right: auto;">
+        Anda belum menambahkan aplikasi atau lisensi digital apa pun. Jelajahi katalog sekarang untuk menemukan penawaran terbaik.
+      </p>
+      <a href="/catalog" class="btn btn-primary btn-lg">Jelajahi Katalog Produk</a>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+async function applyVoucher() {
+  const code = document.getElementById('voucher-input').value.trim();
+  if (!code) {
+    showToast('Masukkan kode voucher terlebih dahulu', 'warning');
+    return;
+  }
+  try {
+    const res = await fetch('/api/vouchers/apply', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code: code, subtotal: {{ subtotal }} })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.detail || 'Kode voucher tidak valid');
+    showToast(`Voucher ${data.code} berhasil dipasang!`, 'success');
+    window.location.reload();
+  } catch (err) {
+    showToast(err.message, 'error');
+  }
+}
+</script>
+{% endblock %}

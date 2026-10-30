@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+
+{% block title %}Pembayaran Pesanan #{{ order.order_number }} — {{ store_settings.store_name or 'PRIME APPS' }}{% endblock %}
+
+{% block content %}
+<div class="container container-narrow" style="padding-top: 40px; padding-bottom: 80px;">
+  <!-- Payment Status Card -->
+  <div style="background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: var(--radius-xl); padding: 36px; box-shadow: var(--shadow-md); text-align: center;">
+    
+    <div style="display: inline-flex; align-items: center; gap: 8px; padding: 6px 14px; background: var(--warning-subtle); color: var(--warning); border-radius: var(--radius-pill); font-size: 0.85rem; font-weight: 600; margin-bottom: 20px;">
+      <span class="hero-badge-dot" style="background: var(--warning);"></span>
+      <span>Menunggu Pembayaran</span>
+    </div>
+
+    <h1 style="font-size: 1.8rem; margin-bottom: 8px;">Pesanan #{{ order.order_number }}</h1>
+    <p class="text-sm text-muted" style="margin-bottom: 24px;">Silakan selesaikan pembayaran sebelum batas waktu berakhir.</p>
+
+    <div style="padding: 20px; background: var(--bg-subtle); border-radius: var(--radius-lg); margin-bottom: 28px; display: inline-block; min-width: 280px;">
+      <div style="font-size: 0.825rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em;">Total Tagihan</div>
+      <div style="font-size: 2.2rem; font-weight: 800; color: var(--text-primary); margin-top: 4px;">
+        Rp {{ "{:,}".format(order.total_amount).replace(',', '.') }}
+      </div>
+    </div>
+
+    <!-- Payment Instruction Box -->
+    <div style="max-width: 480px; margin: 0 auto 32px; text-align: left; background: var(--bg-primary); padding: 24px; border-radius: var(--radius-lg); border: 1px solid var(--border-default);">
+      {% if order.payment_method == 'QRIS' %}
+        <div style="text-align: center;">
+          <h4 style="margin-bottom: 8px;">Pindai Kode QRIS</h4>
+          <p class="text-xs text-muted" style="margin-bottom: 16px;">Mendukung BCA Mobile, Livin Mandiri, GoPay, OVO, Dana, ShopeePay & LinkAja</p>
+          
+          <!-- Visual Dynamic QR Code Representation -->
+          <div style="width: 200px; height: 200px; margin: 0 auto 16px; background: #ffffff; border: 2px solid var(--border-strong); border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 12px; position: relative;">
+            <svg width="160" height="160" viewBox="0 0 100 100" fill="#000000">
+              <!-- Crisp clean QR pattern matrix -->
+              <rect x="5" y="5" width="25" height="25" fill="#000000"/>
+              <rect x="9" y="9" width="17" height="17" fill="#ffffff"/>
+              <rect x="13" y="13" width="9" height="9" fill="#000000"/>
+              
+              <rect x="70" y="5" width="25" height="25" fill="#000000"/>
+              <rect x="74" y="9" width="17" height="17" fill="#ffffff"/>
+              <rect x="78" y="13" width="9" height="9" fill="#000000"/>
+              
+              <rect x="5" y="70" width="25" height="25" fill="#000000"/>
+              <rect x="9" y="74" width="17" height="17" fill="#ffffff"/>
+              <rect x="13" y="78" width="9" height="9" fill="#000000"/>
+
+              <rect x="36" y="10" width="6" height="6"/>
+              <rect x="46" y="16" width="6" height="6"/>
+              <rect x="56" y="8" width="6" height="6"/>
+              <rect x="36" y="24" width="6" height="6"/>
+              <rect x="52" y="26" width="6" height="6"/>
+              <rect x="12" y="38" width="6" height="6"/>
+              <rect x="24" y="44" width="6" height="6"/>
+              <rect x="38" y="38" width="8" height="8"/>
+              <rect x="48" y="48" width="8" height="8"/>
+              <rect x="64" y="38" width="8" height="8"/>
+              <rect x="80" y="42" width="6" height="6"/>
+              <rect x="36" y="60" width="6" height="6"/>
+              <rect x="50" y="68" width="6" height="6"/>
+              <rect x="64" y="62" width="8" height="8"/>
+              <rect x="40" y="82" width="6" height="6"/>
+              <rect x="58" y="78" width="6" height="6"/>
+              <rect x="78" y="74" width="6" height="6"/>
+              <rect x="82" y="86" width="6" height="6"/>
+            </svg>
+            <span style="font-size: 10px; font-weight: 700; color: #1d1d1f; letter-spacing: 1px;">QRIS STANDAR BI</span>
+          </div>
+
+          <div class="text-xs text-muted">ID Transaksi: {{ payment.transaction_id if payment else order.order_number }}</div>
+        </div>
+
+      {% elif 'VA' in order.payment_method %}
+        <div>
+          <h4 style="margin-bottom: 8px;">Nomor Virtual Account {{ order.payment_method.replace('_', ' ') }}</h4>
+          <p class="text-xs text-muted" style="margin-bottom: 16px;">Transfer tepat sesuai nominal tagihan dari m-banking atau ATM Anda.</p>
+          
+          <div style="display: flex; justify-content: space-between; align-items: center; background: var(--bg-surface); padding: 14px 18px; border-radius: var(--radius-md); border: 1px solid var(--border-default); margin-bottom: 12px;">
+            <span class="font-mono" id="va-number" style="font-size: 1.25rem; font-weight: 700; letter-spacing: 1px;">827108{{ order.id }}849201</span>
+            <button type="button" onclick="copyToClipboard('827108{{ order.id }}849201', 'va-copy-btn')" id="va-copy-btn" class="btn btn-secondary btn-sm">Salin</button>
+          </div>
+        </div>
+      {% else %}
+        <div>
+          <h4 style="margin-bottom: 8px;">Instruksi Pembayaran {{ order.payment_method }}</h4>
+          <p class="text-sm">Buka aplikasi {{ order.payment_method }} Anda dan konfirmasi pembayaran sejumlah <strong>Rp {{ "{:,}".format(order.total_amount).replace(',', '.') }}</strong>.</p>
+        </div>
+      {% endif %}
+
+      <div style="margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--border-subtle); font-size: 0.8rem; color: var(--text-secondary);">
+        ✓ Halaman ini otomatis mendeteksi ketika pembayaran selesai.<br>
+        ✓ Lisensi aplikasi Anda langsung ditampilkan di layar detik itu juga.
+      </div>
+    </div>
+
+    <!-- Simulator Controller for Demo & Verification -->
+    <div style="background: var(--bg-subtle); border: 1px dashed var(--border-default); border-radius: var(--radius-lg); padding: 20px; max-width: 480px; margin: 0 auto;">
+      <div style="font-size: 0.775rem; font-weight: 700; text-transform: uppercase; color: var(--text-muted); margin-bottom: 8px;">
+        🧪 Simulator Pembayaran Gateway (Sandbox Mode)
+      </div>
+      <p style="font-size: 0.825rem; color: var(--text-secondary); margin-bottom: 16px;">
+        Klik tombol di bawah untuk menyimulasikan transaksi sukses dari gateway. Sistem backend akan memvalidasi webhook dan menerbitkan kode serial lisensi resmi secara otomatis.
+      </p>
+      
+      <button type="button" id="simulate-pay-btn" onclick="simulatePaymentAction('{{ order.order_number }}', 'pay')" class="btn btn-primary" style="width: 100%;">
+        ⚡ Simulasikan Pembayaran Berhasil (Webhook Lunas)
+      </button>
+    </div>
+
+    <div style="margin-top: 24px;">
+      <a href="/catalog" class="text-sm text-muted">Batal dan Kembali ke Belanja</a>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  startPaymentStatusPolling('{{ order.order_number }}');
+});
+</script>
+{% endblock %}

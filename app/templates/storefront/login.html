@@ -1,0 +1,161 @@
+{% extends "base.html" %}
+
+{% block title %}Masuk / Daftar Akun — {{ store_settings.store_name or 'PRIME APPS' }}{% endblock %}
+
+{% block content %}
+<div class="container container-narrow" style="padding-top: 60px; padding-bottom: 80px; max-width: 480px;">
+  <div style="background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: var(--radius-xl); padding: 36px; box-shadow: var(--shadow-lg);">
+    
+    <div style="text-align: center; margin-bottom: 28px;">
+      <div class="brand-icon" style="margin: 0 auto 12px; width: 44px; height: 44px; font-size: 20px;">P</div>
+      <h2 style="font-size: 1.6rem; margin-bottom: 6px;">Selamat Datang</h2>
+      <p class="text-xs text-muted">Akses lisensi aplikasi digital Anda kapan saja</p>
+    </div>
+
+    <!-- Auth Tabs -->
+    <div style="display: flex; background: var(--bg-subtle); padding: 4px; border-radius: var(--radius-pill); margin-bottom: 24px;">
+      <button type="button" id="tab-login-btn" onclick="switchTab('login')" class="btn btn-sm" style="flex: 1; border-radius: var(--radius-pill); background: var(--bg-surface); font-weight: 600;">
+        Masuk
+      </button>
+      <button type="button" id="tab-register-btn" onclick="switchTab('register')" class="btn btn-sm" style="flex: 1; border-radius: var(--radius-pill); background: transparent; color: var(--text-secondary);">
+        Daftar Baru
+      </button>
+    </div>
+
+    <!-- Login Form -->
+    <form id="login-form" onsubmit="handleLogin(event)">
+      <div class="form-group">
+        <label class="form-label">Email</label>
+        <input type="email" id="login-email" required placeholder="nama@email.com" class="form-input">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Password</label>
+        <input type="password" id="login-password" required placeholder="••••••••" class="form-input">
+      </div>
+
+      <button type="submit" id="login-submit-btn" class="btn btn-primary" style="width: 100%; margin-top: 10px;">
+        Masuk ke Akun
+      </button>
+    </form>
+
+    <!-- Register Form -->
+    <form id="register-form" onsubmit="handleRegister(event)" style="display: none;">
+      <div class="form-group">
+        <label class="form-label">Nama Lengkap</label>
+        <input type="text" id="reg-name" required placeholder="Nama Lengkap Anda" class="form-input">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Email</label>
+        <input type="email" id="reg-email" required placeholder="nama@email.com" class="form-input">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Nomor WhatsApp</label>
+        <input type="tel" id="reg-phone" placeholder="08xxxxxxxxxx" class="form-input">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Password (Minimal 6 karakter)</label>
+        <input type="password" id="reg-password" minlength="6" required placeholder="••••••••" class="form-input">
+      </div>
+
+      <button type="submit" id="reg-submit-btn" class="btn btn-primary" style="width: 100%; margin-top: 10px;">
+        Buat Akun Baru
+      </button>
+    </form>
+
+    <div style="margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--border-subtle); text-align: center; font-size: 0.8rem; color: var(--text-muted);">
+      Belanja tanpa ribet • Lisensi resmi legal langsung aktif.
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function switchTab(tab) {
+  const loginForm = document.getElementById('login-form');
+  const regForm = document.getElementById('register-form');
+  const loginBtn = document.getElementById('tab-login-btn');
+  const regBtn = document.getElementById('tab-register-btn');
+
+  if (tab === 'login') {
+    loginForm.style.display = 'block';
+    regForm.style.display = 'none';
+    loginBtn.style.background = 'var(--bg-surface)';
+    loginBtn.style.color = 'var(--text-primary)';
+    regBtn.style.background = 'transparent';
+    regBtn.style.color = 'var(--text-secondary)';
+  } else {
+    loginForm.style.display = 'none';
+    regForm.style.display = 'block';
+    regBtn.style.background = 'var(--bg-surface)';
+    regBtn.style.color = 'var(--text-primary)';
+    loginBtn.style.background = 'transparent';
+    loginBtn.style.color = 'var(--text-secondary)';
+  }
+}
+
+async function handleLogin(e) {
+  e.preventDefault();
+  const btn = document.getElementById('login-submit-btn');
+  btn.disabled = true;
+  btn.textContent = 'Memverifikasi...';
+
+  try {
+    const res = await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email: document.getElementById('login-email').value.trim(),
+        password: document.getElementById('login-password').value
+      })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.detail || 'Email atau password salah');
+
+    showToast('Login berhasil!', 'success');
+    const urlParams = new URLSearchParams(window.location.search);
+    const nextUrl = urlParams.get('next') || (data.role === 'admin' || data.role === 'superadmin' ? '/admin' : '/account');
+    setTimeout(() => window.location.href = nextUrl, 800);
+  } catch (err) {
+    showToast(err.message, 'error');
+    btn.disabled = false;
+    btn.textContent = 'Masuk ke Akun';
+  }
+}
+
+async function handleRegister(e) {
+  e.preventDefault();
+  const btn = document.getElementById('reg-submit-btn');
+  btn.disabled = true;
+  btn.textContent = 'Mendaftarkan...';
+
+  try {
+    const res = await fetch('/api/auth/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        full_name: document.getElementById('reg-name').value.trim(),
+        email: document.getElementById('reg-email').value.trim(),
+        phone: document.getElementById('reg-phone').value.trim(),
+        password: document.getElementById('reg-password').value
+      })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.detail || 'Gagal mendaftar');
+
+    showToast('Pendaftaran berhasil! Otomatis masuk...', 'success');
+    const urlParams = new URLSearchParams(window.location.search);
+    const nextUrl = urlParams.get('next') || '/account';
+    setTimeout(() => window.location.href = nextUrl, 800);
+  } catch (err) {
+    showToast(err.message, 'error');
+    btn.disabled = false;
+    btn.textContent = 'Buat Akun Baru';
+  }
+}
+</script>
+{% endblock %}

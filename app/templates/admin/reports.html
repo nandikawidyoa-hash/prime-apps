@@ -1,0 +1,98 @@
+{% extends "admin/base_admin.html" %}
+
+{% block page_title %}Laporan & Analitik Penjualan{% endblock %}
+{% block page_subtitle %}Rekapitulasi pendapatan kotor, omset produk, dan ekspor data pembukuan CSV{% endblock %}
+
+{% block content %}
+<!-- Date Range Filter & Export Bar -->
+<div style="background: var(--bg-surface); padding: 20px; border-radius: var(--radius-lg); border: 1px solid var(--border-subtle); margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px;">
+  <form method="GET" action="/admin/reports" style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+    <div style="display: flex; align-items: center; gap: 6px;">
+      <span class="text-xs text-muted">Dari:</span>
+      <input type="date" name="start_date" value="{{ start_date }}" class="form-input" style="padding: 6px 12px; font-size: 0.85rem;">
+    </div>
+    <div style="display: flex; align-items: center; gap: 6px;">
+      <span class="text-xs text-muted">Sampai:</span>
+      <input type="date" name="end_date" value="{{ end_date }}" class="form-input" style="padding: 6px 12px; font-size: 0.85rem;">
+    </div>
+    <button type="submit" class="btn btn-secondary btn-sm">Terapkan Filter</button>
+  </form>
+
+  <a href="/api/admin/reports/export.csv?start_date={{ start_date }}&end_date={{ end_date }}" class="btn btn-primary btn-sm">
+    📥 Ekspor Laporan CSV
+  </a>
+</div>
+
+<!-- Metrics Summary -->
+<div class="stat-grid">
+  <div class="stat-card">
+    <div class="stat-title">Omset Bersih Periode Ini</div>
+    <div class="stat-value" style="color: var(--accent);">
+      Rp {{ "{:,}".format(summary.total_revenue).replace(',', '.') }}
+    </div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-title">Total Transaksi Selesai</div>
+    <div class="stat-value">{{ summary.paid_orders }} Pesanan</div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-title">Rata-rata Nilai Transaksi</div>
+    <div class="stat-value">
+      Rp {{ "{:,}".format(summary.avg_order_value).replace(',', '.') }}
+    </div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-title">Tingkat Pembayaran Sukses</div>
+    <div class="stat-value">{{ summary.payment_success_rate }}%</div>
+  </div>
+</div>
+
+<!-- Breakdown Table -->
+<div style="background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); padding: 24px;">
+  <h3 style="margin-bottom: 18px; font-size: 1.15rem;">Rincian Transaksi Selesai Periode Terpilih</h3>
+
+  <div class="table-container" style="box-shadow: none;">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Tanggal & Jam</th>
+          <th>No. Pesanan</th>
+          <th>Pelanggan</th>
+          <th>Metode Bayar</th>
+          <th>Subtotal</th>
+          <th>Diskon</th>
+          <th>Total Bayar</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% if transactions %}
+          {% for t in transactions %}
+            <tr>
+              <td class="text-xs text-muted">{{ t.created_at }}</td>
+              <td><strong>#{{ t.order_number }}</strong></td>
+              <td>{{ t.customer_name }}</td>
+              <td>{{ t.payment_method }}</td>
+              <td>Rp {{ "{:,}".format(t.subtotal).replace(',', '.') }}</td>
+              <td style="color: var(--danger);">- Rp {{ "{:,}".format(t.discount_amount).replace(',', '.') }}</td>
+              <td style="font-weight: 700; color: var(--text-primary);">
+                Rp {{ "{:,}".format(t.total_amount).replace(',', '.') }}
+              </td>
+              <td><span class="badge badge-success">PAID</span></td>
+            </tr>
+          {% endfor %}
+        {% else %}
+          <tr>
+            <td colspan="8" style="text-align: center; padding: 32px; color: var(--text-muted);">
+              Tidak ada data transaksi lunas pada rentang tanggal ini.
+            </td>
+          </tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

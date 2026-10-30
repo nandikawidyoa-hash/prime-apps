@@ -1,0 +1,419 @@
+{% extends "admin/base_admin.html" %}
+
+{% block page_title %}{% if product %}Edit Produk: {{ product.name }}{% else %}Tambah Produk Baru{% endif %}{% endblock %}
+{% block page_subtitle %}Isi data aplikasi, tentukan opsi varian harga paket, unggah foto, dan masukkan kode serial lisensi{% endblock %}
+
+{% block content %}
+<form id="product-form" onsubmit="handleProductSubmit(event)">
+  <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 32px; align-items: start;">
+    <!-- Left Column: Core Product Info, Variants & Images -->
+    <div>
+      <div style="background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); padding: 28px; margin-bottom: 24px;">
+        <h3 style="margin-bottom: 20px; font-size: 1.15rem;">Informasi Utama Produk</h3>
+
+        <div class="form-group">
+          <label class="form-label">Nama Aplikasi / Produk *</label>
+          <input type="text" id="prod-name" required value="{{ product.name if product else '' }}" placeholder="Contoh: GitHub Copilot Pro" class="form-input">
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+          <div class="form-group">
+            <label class="form-label">Slug URL (Opsional)</label>
+            <input type="text" id="prod-slug" value="{{ product.slug if product else '' }}" placeholder="github-copilot-pro" class="form-input">
+            <span class="text-xs text-muted">Otomatis digenerate dari nama jika dibiarkan kosong.</span>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">SKU (Stock Keeping Unit)</label>
+            <input type="text" id="prod-sku" value="{{ product.sku if product else '' }}" placeholder="PRM-GH-001" class="form-input">
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+          <div class="form-group">
+            <label class="form-label">Kategori *</label>
+            <select id="prod-category" class="form-select">
+              <option value="">Pilih Kategori</option>
+              {% for cat in categories %}
+                <option value="{{ cat.id }}" {% if product and product.category_id == cat.id %}selected{% endif %}>{{ cat.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Brand / Publisher</label>
+            <select id="prod-brand" class="form-select">
+              <option value="">Pilih Brand</option>
+              {% for b in brands %}
+                <option value="{{ b.id }}" {% if product and product.brand_id == b.id %}selected{% endif %}>{{ b.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Deskripsi Singkat</label>
+          <input type="text" id="prod-short-desc" value="{{ product.short_description if product else '' }}" placeholder="Ringkasan 1-2 kalimat untuk kartu produk di beranda" class="form-input">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Deskripsi Lengkap & Spesifikasi</label>
+          <textarea id="prod-desc" rows="6" class="form-textarea" placeholder="Jelaskan detail lisensi, kompatibilitas OS, fitur utama, dan ketentuan aktivasi...">{{ product.description if product else '' }}</textarea>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Fitur Unggulan (Satu fitur per baris)</label>
+          <textarea id="prod-features" rows="4" class="form-textarea" placeholder="Aktivasi Resmi Original
+Bebas Update Fitur Terbaru
+Garansi Penuh 365 Hari
+Multi-Device Support">{{ features_text if features_text else '' }}</textarea>
+        </div>
+      </div>
+
+      <!-- Multiple Pricing Tiers / Variants Section -->
+      <div style="background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); padding: 26px; margin-bottom: 24px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
+          <div>
+            <h3 style="font-size: 1.15rem; margin-bottom: 4px;">Pilihan Varian Harga & Durasi (Opsional)</h3>
+            <p class="text-xs text-muted">Gunakan ini jika 1 produk punya beberapa harga (misal: 1 Bulan, 6 Bulan, 1 Tahun, atau Paket Personal vs Tim).</p>
+          </div>
+          <button type="button" onclick="addVariantRow()" class="btn btn-secondary btn-sm">+ Tambah Pilihan Varian</button>
+        </div>
+
+        <div id="variants-container" style="display: flex; flex-direction: column; gap: 12px; margin-top: 14px;">
+          {% if variants %}
+            {% for v in variants %}
+              <div class="variant-row" style="display: grid; grid-template-columns: 2fr 1.5fr 1.5fr 1.2fr auto; gap: 10px; align-items: center; padding: 12px; background: var(--bg-subtle); border-radius: var(--radius-md);">
+                <div>
+                  <label class="text-xs text-muted" style="display:block; margin-bottom:2px;">Nama Paket/Durasi *</label>
+                  <input type="text" class="form-input var-name" required value="{{ v.name }}" placeholder="Contoh: 1 Bulan" style="padding: 7px 10px; font-size: 0.85rem;">
+                </div>
+                <div>
+                  <label class="text-xs text-muted" style="display:block; margin-bottom:2px;">Harga Normal (Rp) *</label>
+                  <input type="number" class="form-input var-reg-price" required min="0" value="{{ v.regular_price }}" placeholder="350000" style="padding: 7px 10px; font-size: 0.85rem;">
+                </div>
+                <div>
+                  <label class="text-xs text-muted" style="display:block; margin-bottom:2px;">Harga Diskon (Rp)</label>
+                  <input type="number" class="form-input var-sale-price" min="0" value="{{ v.sale_price if v.sale_price else '' }}" placeholder="299000" style="padding: 7px 10px; font-size: 0.85rem;">
+                </div>
+                <div>
+                  <label class="text-xs text-muted" style="display:block; margin-bottom:2px;">SKU Varian</label>
+                  <input type="text" class="form-input var-sku" value="{{ v.sku or '' }}" placeholder="VAR-01" style="padding: 7px 10px; font-size: 0.85rem;">
+                </div>
+                <div style="padding-top: 16px;">
+                  <button type="button" onclick="removeVariantRow(this)" class="btn btn-subtle btn-sm" style="color: var(--danger); padding: 4px 8px;" title="Hapus Varian">✕</button>
+                </div>
+              </div>
+            {% endfor %}
+          {% endif %}
+        </div>
+        <div id="no-variants-hint" style="text-align: center; padding: 16px; border: 1px dashed var(--border-default); border-radius: var(--radius-md); font-size: 0.825rem; color: var(--text-muted); margin-top: 10px; {% if variants %}display:none;{% endif %}">
+          Belum ada varian harga tambahan. Produk akan memakai harga default di sebelah kanan. Klik <strong>"+ Tambah Pilihan Varian"</strong> jika ingin menyediakan beberapa opsi durasi/paket.
+        </div>
+      </div>
+
+      <!-- Multi-Image Upload & Gallery Management -->
+      <div style="background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); padding: 28px; margin-bottom: 24px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+          <div>
+            <h3 style="font-size: 1.15rem; margin-bottom: 4px;">Galeri Foto Produk</h3>
+            <p class="text-xs text-muted">Upload screenshot antarmuka atau mockup aplikasi. Foto utama akan jadi thumbnail di katalog.</p>
+          </div>
+        </div>
+
+        {% if product %}
+          <!-- Dropzone -->
+          <div id="image-dropzone" style="border: 2px dashed var(--border-default); border-radius: var(--radius-md); padding: 28px 20px; text-align: center; cursor: pointer; background: var(--bg-subtle); margin-bottom: 20px; transition: all 0.2s;">
+            <div style="font-size: 2.2rem; margin-bottom: 8px;">📷</div>
+            <div style="font-weight: 600; font-size: 0.95rem;">Tarik & Lepas Foto di sini atau Klik untuk Memilih</div>
+            <p class="text-xs text-muted" style="margin-top: 4px;">Mendukung PNG, JPG, WEBP hingga 5MB. Dapat mengunggah beberapa file sekaligus.</p>
+            <input type="file" id="product-images-input" multiple accept="image/*" style="display: none;">
+          </div>
+
+          <!-- Existing Images Grid -->
+          <div id="uploaded-images-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 14px;">
+            {% for img in images %}
+              <div id="img-card-{{ img.id }}" class="uploaded-img-card" style="position: relative; border-radius: 8px; overflow: hidden; border: 1px solid var(--border-default); background: var(--bg-surface); aspect-ratio: 1;">
+                <img src="{{ img.thumbnail_url or img.image_url }}" alt="{{ img.alt_text }}" style="width: 100%; height: 100%; object-fit: cover;">
+                <div style="position: absolute; top: 6px; right: 6px;">
+                  <button type="button" onclick="AdminImageManager.deleteImage({{ img.id }})" class="btn btn-sm btn-danger" style="padding: 2px 6px; font-size: 11px;">Hapus</button>
+                </div>
+                <div style="position: absolute; bottom: 6px; left: 6px;">
+                  {% if img.is_primary %}
+                    <span class="badge badge-success" style="font-size: 10px;">Utama</span>
+                  {% else %}
+                    <button type="button" onclick="AdminImageManager.setPrimary({{ img.id }})" class="btn btn-sm btn-secondary" style="padding: 2px 6px; font-size: 10px;">Jadikan Utama</button>
+                  {% endif %}
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div style="padding: 20px; background: var(--bg-subtle); border-radius: var(--radius-md); text-align: center; font-size: 0.85rem; color: var(--text-secondary);">
+            💡 <strong>Info:</strong> Simpan produk ini terlebih dahulu. Setelah tersimpan, form upload galeri foto akan otomatis aktif untuk produk ini.
+          </div>
+        {% endif %}
+      </div>
+
+      <!-- Digital License Key Pool -->
+      <div style="background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); padding: 28px;">
+        <h3 style="margin-bottom: 8px; font-size: 1.15rem;">Stok Kode Serial Lisensi (Instant Delivery)</h3>
+        <p class="text-xs text-muted" style="margin-bottom: 16px;">
+          Masukkan satu kode lisensi per baris. Sistem akan otomatis mengambil satu kode serial untuk dikirimkan secara instan ke pembeli saat pembayaran terkonfirmasi.
+        </p>
+
+        <div class="form-group">
+          <label class="form-label">Tambah Serial Keys (1 kode per baris)</label>
+          <textarea id="prod-license-keys" rows="5" class="form-textarea font-mono" placeholder="PRIME-2026-X889-COPILOT-PRO
+PRIME-2026-Y991-COPILOT-PRO
+PRIME-2026-Z102-COPILOT-PRO"></textarea>
+          <span class="text-xs text-muted">
+            {% if product %}
+              Saat ini ada <strong>{{ stock_keys_count }} lisensi aktif belum terpakai</strong> di database untuk produk ini.
+            {% endif %}
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Column: Pricing, Delivery & Status -->
+    <div>
+      <!-- Default Pricing Box -->
+      <div style="background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); padding: 24px; margin-bottom: 24px;">
+        <h4 style="margin-bottom: 4px;">Harga Utama / Default</h4>
+        <p class="text-xs text-muted" style="margin-bottom: 14px;">Digunakan sebagai harga dasar jika pembeli tidak memilih varian.</p>
+
+        <div class="form-group">
+          <label class="form-label">Harga Normal (Rp) *</label>
+          <input type="number" id="prod-regular-price" required min="0" value="{{ product.regular_price if product else 0 }}" class="form-input">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Harga Coret / Diskon Promo (Rp)</label>
+          <input type="number" id="prod-sale-price" min="0" value="{{ product.sale_price if product and product.sale_price else '' }}" placeholder="Opsional" class="form-input">
+        </div>
+      </div>
+
+      <!-- Delivery Settings -->
+      <div style="background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); padding: 24px; margin-bottom: 24px;">
+        <h4 style="margin-bottom: 16px;">Pengiriman Digital</h4>
+
+        <div class="form-group">
+          <label class="form-label">Tipe Pengiriman</label>
+          <select id="prod-delivery-type" class="form-select">
+            <option value="license_key" {% if not product or product.delivery_type == 'license_key' %}selected{% endif %}>Kode Serial Lisensi (Serial Key Vault)</option>
+            <option value="account_invite" {% if product and product.delivery_type == 'account_invite' %}selected{% endif %}>Undangan Akun / Workspace Team</option>
+            <option value="download_link" {% if product and product.delivery_type == 'download_link' %}selected{% endif %}>Link Unduh & Petunjuk Setup</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Instruksi Aktivasi Khusus</label>
+          <textarea id="prod-delivery-instructions" rows="3" class="form-textarea" placeholder="Contoh: Download installer di website resmi lalu masukkan serial saat diminta.">{{ product.delivery_instructions if product else '' }}</textarea>
+        </div>
+      </div>
+
+      <!-- Status & Badges -->
+      <div style="background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); padding: 24px; margin-bottom: 24px;">
+        <h4 style="margin-bottom: 16px;">Status Publikasi</h4>
+
+        <div class="form-group">
+          <label class="form-label">Status Produk</label>
+          <select id="prod-status" class="form-select">
+            <option value="active" {% if not product or product.status == 'active' %}selected{% endif %}>Aktif (Tampil di Toko)</option>
+            <option value="draft" {% if product and product.status == 'draft' %}selected{% endif %}>Draft (Tersembunyi)</option>
+            <option value="archived" {% if product and product.status == 'archived' %}selected{% endif %}>Arsip</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Urutan Tampilan (Sort Order)</label>
+          <input type="number" id="prod-sort" value="{{ product.sort_order if product else 0 }}" class="form-input">
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 14px;">
+          <label style="display: flex; align-items: center; gap: 8px; font-size: 0.9rem; cursor: pointer;">
+            <input type="checkbox" id="prod-featured" {% if product and product.is_featured %}checked{% endif %}>
+            <span>Jadikan Produk Unggulan</span>
+          </label>
+          <label style="display: flex; align-items: center; gap: 8px; font-size: 0.9rem; cursor: pointer;">
+            <input type="checkbox" id="prod-trending" {% if product and product.is_trending %}checked{% endif %}>
+            <span>Tandai sebagai Populer / Trending</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- SEO Meta -->
+      <div style="background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); padding: 24px; margin-bottom: 24px;">
+        <h4 style="margin-bottom: 16px;">Pengaturan SEO Meta</h4>
+
+        <div class="form-group">
+          <label class="form-label">SEO Title</label>
+          <input type="text" id="prod-seo-title" value="{{ product.seo_title if product else '' }}" placeholder="Judul untuk Google Search" class="form-input">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">SEO Meta Description</label>
+          <textarea id="prod-seo-desc" rows="2" class="form-textarea" placeholder="Deskripsi ringkas yang tampil pada hasil pencarian...">{{ product.seo_description if product else '' }}</textarea>
+        </div>
+      </div>
+
+      <!-- Submit Action -->
+      <div style="position: sticky; bottom: 20px; background: var(--bg-surface); padding: 18px; border-radius: var(--radius-lg); border: 1px solid var(--border-default); box-shadow: var(--shadow-lg);">
+        <button type="submit" id="save-product-btn" class="btn btn-primary" style="width: 100%; margin-bottom: 8px;">
+          💾 Simpan Data Produk & Varian
+        </button>
+        <a href="/admin/products" class="btn btn-subtle btn-sm" style="width: 100%;">Batal</a>
+      </div>
+    </div>
+  </div>
+</form>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const currentProductId = {{ product.id if product else 'null' }};
+
+document.addEventListener('DOMContentLoaded', () => {
+  if (currentProductId) {
+    AdminImageManager.init(currentProductId);
+  }
+});
+
+function addVariantRow() {
+  const container = document.getElementById('variants-container');
+  const hint = document.getElementById('no-variants-hint');
+  if (hint) hint.style.display = 'none';
+
+  const defaultReg = document.getElementById('prod-regular-price').value || '100000';
+
+  const row = document.createElement('div');
+  row.className = 'variant-row';
+  row.style.cssText = 'display: grid; grid-template-columns: 2fr 1.5fr 1.5fr 1.2fr auto; gap: 10px; align-items: center; padding: 12px; background: var(--bg-subtle); border-radius: var(--radius-md); animation: slideUp 0.2s ease-out;';
+  row.innerHTML = `
+    <div>
+      <label class="text-xs text-muted" style="display:block; margin-bottom:2px;">Nama Paket/Durasi *</label>
+      <input type="text" class="form-input var-name" required placeholder="Contoh: 1 Bulan / 1 Tahun" style="padding: 7px 10px; font-size: 0.85rem;">
+    </div>
+    <div>
+      <label class="text-xs text-muted" style="display:block; margin-bottom:2px;">Harga Normal (Rp) *</label>
+      <input type="number" class="form-input var-reg-price" required min="0" value="${defaultReg}" style="padding: 7px 10px; font-size: 0.85rem;">
+    </div>
+    <div>
+      <label class="text-xs text-muted" style="display:block; margin-bottom:2px;">Harga Diskon (Rp)</label>
+      <input type="number" class="form-input var-sale-price" min="0" placeholder="Opsional" style="padding: 7px 10px; font-size: 0.85rem;">
+    </div>
+    <div>
+      <label class="text-xs text-muted" style="display:block; margin-bottom:2px;">SKU Varian</label>
+      <input type="text" class="form-input var-sku" placeholder="VAR-01" style="padding: 7px 10px; font-size: 0.85rem;">
+    </div>
+    <div style="padding-top: 16px;">
+      <button type="button" onclick="removeVariantRow(this)" class="btn btn-subtle btn-sm" style="color: var(--danger); padding: 4px 8px;" title="Hapus Varian">✕</button>
+    </div>
+  `;
+  container.appendChild(row);
+}
+
+function removeVariantRow(btn) {
+  const row = btn.closest('.variant-row');
+  if (row) row.remove();
+
+  const container = document.getElementById('variants-container');
+  const hint = document.getElementById('no-variants-hint');
+  if (container.querySelectorAll('.variant-row').length === 0 && hint) {
+    hint.style.display = 'block';
+  }
+}
+
+async function handleProductSubmit(e) {
+  e.preventDefault();
+  const btn = document.getElementById('save-product-btn');
+  btn.disabled = true;
+  btn.textContent = 'Menyimpan...';
+
+  const rawFeatures = document.getElementById('prod-features').value
+    .split('\n')
+    .map(s => s.trim())
+    .filter(s => s.length > 0);
+
+  const rawLicenses = document.getElementById('prod-license-keys').value
+    .split('\n')
+    .map(s => s.trim())
+    .filter(s => s.length > 0);
+
+  const saleVal = document.getElementById('prod-sale-price').value.trim();
+
+  // Gather variants
+  const variantRows = document.querySelectorAll('.variant-row');
+  const variants = [];
+  variantRows.forEach(row => {
+    const vName = row.querySelector('.var-name').value.trim();
+    const vReg = parseInt(row.querySelector('.var-reg-price').value) || parseInt(document.getElementById('prod-regular-price').value) || 0;
+    const vSaleStr = row.querySelector('.var-sale-price').value.trim();
+    const vSale = vSaleStr ? parseInt(vSaleStr) : null;
+    const vSku = row.querySelector('.var-sku').value.trim();
+    if (vName) {
+      variants.push({
+        name: vName,
+        regular_price: vReg,
+        sale_price: vSale,
+        sku: vSku
+      });
+    }
+  });
+
+  const payload = {
+    name: document.getElementById('prod-name').value.trim(),
+    slug: document.getElementById('prod-slug').value.trim() || null,
+    sku: document.getElementById('prod-sku').value.trim() || null,
+    category_id: parseInt(document.getElementById('prod-category').value) || null,
+    brand_id: parseInt(document.getElementById('prod-brand').value) || null,
+    short_description: document.getElementById('prod-short-desc').value.trim() || null,
+    description: document.getElementById('prod-desc').value.trim() || null,
+    features: rawFeatures,
+    regular_price: parseInt(document.getElementById('prod-regular-price').value) || 0,
+    sale_price: saleVal ? parseInt(saleVal) : null,
+    delivery_type: document.getElementById('prod-delivery-type').value,
+    delivery_instructions: document.getElementById('prod-delivery-instructions').value.trim() || null,
+    status: document.getElementById('prod-status').value,
+    sort_order: parseInt(document.getElementById('prod-sort').value) || 0,
+    is_featured: document.getElementById('prod-featured').checked,
+    is_trending: document.getElementById('prod-trending').checked,
+    seo_title: document.getElementById('prod-seo-title').value.trim() || null,
+    seo_description: document.getElementById('prod-seo-desc').value.trim() || null,
+    license_keys: rawLicenses,
+    variants: variants
+  };
+
+  try {
+    let url = '/api/admin/products';
+    let method = 'POST';
+    if (currentProductId) {
+      url = `/api/admin/products/${currentProductId}`;
+      method = 'PUT';
+    }
+
+    const res = await fetch(url, {
+      method: method,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.detail || 'Gagal menyimpan produk');
+
+    showToast('Produk & varian harga berhasil disimpan!', 'success');
+    setTimeout(() => {
+      if (!currentProductId && data.id) {
+        window.location.href = `/admin/products/${data.id}/edit`;
+      } else {
+        window.location.href = '/admin/products';
+      }
+    }, 800);
+  } catch (err) {
+    showToast(err.message, 'error');
+    btn.disabled = false;
+    btn.textContent = '💾 Simpan Data Produk & Varian';
+  }
+}
+</script>
+{% endblock %}

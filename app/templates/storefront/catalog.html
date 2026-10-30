@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+
+{% block title %}Katalog Produk Digital — {{ store_settings.store_name or 'PRIME APPS' }}{% endblock %}
+
+{% block content %}
+<div class="container" style="padding-top: 36px; padding-bottom: 80px;">
+  <!-- Header / Breadcrumb -->
+  <div style="margin-bottom: 24px; display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 10px;">
+    <div>
+      <h1 style="font-size: clamp(1.8rem, 3vw, 2.4rem);">Katalog Produk & Aplikasi</h1>
+      <p class="text-sm">Temukan tools produktivitas, lisensi AI, developer tools, dan software resmi bergaransi.</p>
+    </div>
+    <span class="badge badge-neutral" style="font-size: 0.8rem; padding: 6px 12px;">
+      Total: <strong>{{ total_count }}</strong> produk siap aktivasi
+    </span>
+  </div>
+
+  <!-- Search & Filter Controls -->
+  <form method="GET" action="/catalog" style="margin-bottom: 28px; background: var(--bg-surface); padding: 18px; border-radius: var(--radius-lg); border: 1px solid var(--border-subtle); display: grid; grid-template-columns: 2fr 1.2fr 1fr auto; gap: 12px; align-items: end;">
+    <div class="form-group" style="margin-bottom: 0;">
+      <label class="form-label" style="font-size: 0.8rem;">Cari Nama atau Kata Kunci</label>
+      <input type="text" name="q" value="{{ query_search }}" placeholder="Contoh: AI, JetBrains, Figma, Office..." class="form-input" style="padding: 9px 12px;">
+    </div>
+
+    <div class="form-group" style="margin-bottom: 0;">
+      <label class="form-label" style="font-size: 0.8rem;">Kategori</label>
+      <select name="category" class="form-select" style="padding: 9px 12px;">
+        <option value="">Semua Kategori</option>
+        {% for cat in categories %}
+          <option value="{{ cat.slug }}" {% if selected_category == cat.slug %}selected{% endif %}>{{ cat.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div class="form-group" style="margin-bottom: 0;">
+      <label class="form-label" style="font-size: 0.8rem;">Urutkan</label>
+      <select name="sort" class="form-select" style="padding: 9px 12px;">
+        <option value="newest" {% if selected_sort == 'newest' %}selected{% endif %}>Terbaru</option>
+        <option value="popular" {% if selected_sort == 'popular' %}selected{% endif %}>Terpopuler / Unggulan</option>
+        <option value="price_asc" {% if selected_sort == 'price_asc' %}selected{% endif %}>Harga Terendah</option>
+        <option value="price_desc" {% if selected_sort == 'price_desc' %}selected{% endif %}>Harga Tertinggi</option>
+      </select>
+    </div>
+
+    <div style="display: flex; gap: 8px;">
+      <button type="submit" class="btn btn-primary" style="height: 42px; padding: 0 18px;">Filter</button>
+      {% if query_search or selected_category or selected_sort != 'newest' %}
+        <a href="/catalog" class="btn btn-secondary" style="height: 42px; padding: 0 12px;" title="Reset Filter">Reset</a>
+      {% endif %}
+    </div>
+  </form>
+
+  <!-- Category Pills Filter Bar -->
+  <div class="filter-pills" style="margin-bottom: 28px;">
+    <a href="/catalog{% if query_search %}?q={{ query_search }}{% endif %}" class="pill-item {% if not selected_category %}active{% endif %}">Semua</a>
+    {% for cat in categories %}
+      <a href="/catalog?category={{ cat.slug }}{% if query_search %}&q={{ query_search }}{% endif %}" class="pill-item {% if selected_category == cat.slug %}active{% endif %}">
+        {{ cat.icon or '🏷️' }} {{ cat.name }}
+      </a>
+    {% endfor %}
+  </div>
+
+  <!-- Product Results Grid -->
+  {% if products %}
+    <div class="product-grid">
+      {% for product in products %}
+        <div class="product-card">
+          <div class="product-thumb-wrapper">
+            {% if product.primary_image %}
+              <img src="{{ product.primary_image }}" alt="{{ product.name }}" class="product-thumb" loading="lazy">
+            {% else %}
+              <div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: var(--bg-subtle); color: var(--text-muted); font-size: 2rem;">
+                📦
+              </div>
+            {% endif %}
+            <div style="position: absolute; top: 10px; left: 10px; display: flex; gap: 6px;">
+              {% if product.sale_price and product.sale_price < product.regular_price %}
+                <span class="badge badge-danger">PROMO</span>
+              {% endif %}
+              {% if product.is_featured %}
+                <span class="badge badge-accent">UNGGULAN</span>
+              {% endif %}
+            </div>
+          </div>
+
+          <div class="product-card-body">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+              <span class="product-card-category">{{ product.category_name or 'Aplikasi' }}</span>
+              <span class="rating-badge">★ 4.9</span>
+            </div>
+            
+            <h3 class="product-card-title">
+              <a href="/product/{{ product.slug }}">{{ product.name }}</a>
+            </h3>
+            <p class="product-card-desc">{{ product.short_description or 'Lisensi resmi aktivasi cepat.' }}</p>
+
+            <div class="product-card-footer">
+              <div class="price-box">
+                {% if product.sale_price and product.sale_price < product.regular_price %}
+                  <span class="price-regular">Rp {{ "{:,}".format(product.sale_price).replace(',', '.') }}</span>
+                  <span class="price-original">Rp {{ "{:,}".format(product.regular_price).replace(',', '.') }}</span>
+                {% else %}
+                  <span class="price-regular">Rp {{ "{:,}".format(product.regular_price).replace(',', '.') }}</span>
+                {% endif %}
+              </div>
+              <div style="display: flex; gap: 6px;">
+                <button type="button" onclick="Cart.add({{ product.id }})" class="btn btn-secondary btn-sm" title="Tambah ke Keranjang">
+                  🛒
+                </button>
+                <a href="/product/{{ product.slug }}" class="btn btn-primary btn-sm">
+                  Detail
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+
+    <!-- Pagination Controls -->
+    {% if total_pages > 1 %}
+      <div class="pagination-wrapper">
+        {% if page > 1 %}
+          <a href="/catalog?page={{ page - 1 }}{% if query_search %}&q={{ query_search }}{% endif %}{% if selected_category %}&category={{ selected_category }}{% endif %}{% if selected_sort %}&sort={{ selected_sort }}{% endif %}" class="pagination-btn">← Sebelumnya</a>
+        {% endif %}
+
+        {% for p in range(1, total_pages + 1) %}
+          <a href="/catalog?page={{ p }}{% if query_search %}&q={{ query_search }}{% endif %}{% if selected_category %}&category={{ selected_category }}{% endif %}{% if selected_sort %}&sort={{ selected_sort }}{% endif %}" class="pagination-btn {% if p == page %}active{% endif %}">{{ p }}</a>
+        {% endfor %}
+
+        {% if page < total_pages %}
+          <a href="/catalog?page={{ page + 1 }}{% if query_search %}&q={{ query_search }}{% endif %}{% if selected_category %}&category={{ selected_category }}{% endif %}{% if selected_sort %}&sort={{ selected_sort }}{% endif %}" class="pagination-btn">Selanjutnya →</a>
+        {% endif %}
+      </div>
+    {% endif %}
+  {% else %}
+    <!-- Empty State -->
+    <div style="text-align: center; padding: 70px 20px; background: var(--bg-surface); border-radius: var(--radius-xl); border: 1px solid var(--border-subtle); margin: 30px 0;">
+      <div style="font-size: 3rem; margin-bottom: 14px;">🔍</div>
+      <h3 style="margin-bottom: 6px;">Tidak ada produk yang sesuai</h3>
+      <p style="margin-bottom: 20px;" class="text-sm text-muted">Coba ubah kata kunci pencarian atau pilih filter kategori yang lain.</p>
+      <a href="/catalog" class="btn btn-secondary">Tampilkan Semua Produk</a>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

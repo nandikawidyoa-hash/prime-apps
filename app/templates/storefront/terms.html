@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}Syarat & Ketentuan — {{ store_settings.store_name or 'PRIME APPS' }}{% endblock %}
+
+{% block content %}
+<div class="container container-narrow" style="padding-top: 50px; padding-bottom: 80px;">
+  <div style="margin-bottom: 32px;">
+    <h1>Syarat dan Ketentuan Layanan</h1>
+    <p class="text-sm">Ketentuan penggunaan platform dan pembelian lisensi digital di {{ store_settings.store_name or 'PRIME APPS' }}.</p>
+  </div>
+
+  <div style="background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: var(--radius-xl); padding: 36px; line-height: 1.8; color: var(--text-secondary); display: flex; flex-direction: column; gap: 20px;">
+    <h3 style="color: var(--text-primary); font-size: 1.2rem;">1. Ketentuan Umum</h3>
+    <p>
+      Dengan mengakses dan melakukan transaksi di {{ store_settings.store_name or 'PRIME APPS' }}, Anda menyetujui untuk terikat dengan Syarat dan Ketentuan ini. Layanan kami ditujukan untuk pengguna perorangan maupun organisasi yang membutuhkan perangkat lunak legal.
+    </p>
+
+    <h3 style="color: var(--text-primary); font-size: 1.2rem;">2. Karakteristik Produk Digital</h3>
+    <p>
+      Semua barang yang diperjualbelikan merupakan produk digital non-fisik (intangible goods), berupa serial license key, tautan aktivasi resmi, atau akun akses berlisensi resmi. Tidak ada pengiriman kurir fisik yang dilakukan.
+    </p>
+
+    <h3 style="color: var(--text-primary); font-size: 1.2rem;">3. Larangan Penggunaan</h3>
+    <p>
+      Pengguna dilarang keras mendistribusikan ulang, menjual kembali secara ilegal (reselling tanpa izin), melakukan rekayasa balik (reverse engineering), atau menyalahgunakan lisensi di luar peruntukan yang telah ditetapkan oleh masing-masing pemilik hak cipta perangkat lunak.
+    </p>
+
+    <h3 style="color: var(--text-primary); font-size: 1.2rem;">4. Pembatasan Tanggung Jawab</h3>
+    <p>
+      {{ store_settings.store_name or 'PRIME APPS' }} tidak bertanggung jawab atas kerugian tidak langsung atau kehilangan data akibat kelalaian pengguna dalam mematuhi instruksi aktivasi resmi masing-masing pengembang perangkat lunak.
+    </p>
+  </div>
+</div>
+{% endblock %}

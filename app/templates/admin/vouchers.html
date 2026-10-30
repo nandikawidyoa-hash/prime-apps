@@ -1,0 +1,161 @@
+{% extends "admin/base_admin.html" %}
+
+{% block page_title %}Voucher & Promo{% endblock %}
+{% block page_subtitle %}Buat kode kupon diskon persentase atau nominal rupiah dengan limit penggunaan{% endblock %}
+
+{% block content %}
+<div style="display: grid; grid-template-columns: 1fr 1.8fr; gap: 32px; align-items: start;">
+  <!-- Create Voucher Form -->
+  <div style="background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); padding: 24px;">
+    <h3 style="margin-bottom: 18px; font-size: 1.15rem;">Buat Voucher Baru</h3>
+    
+    <form id="voucher-form" onsubmit="handleCreateVoucher(event)">
+      <div class="form-group">
+        <label class="form-label">Kode Voucher (Kapital) *</label>
+        <input type="text" id="v-code" required placeholder="Contoh: HEMAT20, PROMOAI" class="form-input font-mono" style="text-transform: uppercase;">
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+        <div class="form-group">
+          <label class="form-label">Tipe Diskon *</label>
+          <select id="v-type" class="form-select">
+            <option value="percentage">Persentase (%)</option>
+            <option value="fixed">Nominal Tetap (Rp)</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Nilai Diskon *</label>
+          <input type="number" id="v-value" required min="1" placeholder="10 atau 25000" class="form-input">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Minimum Pembelian (Rp)</label>
+        <input type="number" id="v-min-order" min="0" value="0" placeholder="0 jika tanpa syarat" class="form-input">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Batas Kuota Penggunaan (Limit)</label>
+        <input type="number" id="v-limit" min="0" value="0" placeholder="0 untuk tak terbatas" class="form-input">
+        <span class="text-xs text-muted">Isi 0 jika voucher bisa dipakai tanpa batas kuota.</span>
+      </div>
+
+      <button type="submit" id="v-btn" class="btn btn-primary" style="width: 100%; margin-top: 10px;">
+        + Terbitkan Kode Voucher
+      </button>
+    </form>
+  </div>
+
+  <!-- Vouchers List Table -->
+  <div style="background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); padding: 24px;">
+    <h3 style="margin-bottom: 18px; font-size: 1.15rem;">Daftar Voucher Aktif</h3>
+
+    <div class="table-container" style="box-shadow: none;">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Kode</th>
+            <th>Diskon</th>
+            <th>Min. Belanja</th>
+            <th>Terpakai</th>
+            <th>Status</th>
+            <th style="text-align: right;">Aksi</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% if vouchers %}
+            {% for v in vouchers %}
+              <tr>
+                <td>
+                  <strong class="font-mono" style="color: var(--accent);">{{ v.code }}</strong>
+                </td>
+                <td style="font-weight: 600;">
+                  {% if v.discount_type == 'percentage' %}
+                    {{ v.discount_value }}%
+                  {% else %}
+                    Rp {{ "{:,}".format(v.discount_value).replace(',', '.') }}
+                  {% endif %}
+                </td>
+                <td class="text-xs text-muted">
+                  {% if v.min_order_amount > 0 %}
+                    Rp {{ "{:,}".format(v.min_order_amount).replace(',', '.') }}
+                  {% else %}
+                    Tanpa Min.
+                  {% endif %}
+                </td>
+                <td>
+                  {{ v.times_used }} / {{ v.usage_limit if v.usage_limit > 0 else '∞' }}
+                </td>
+                <td>
+                  {% if v.is_active %}
+                    <span class="badge badge-success">Aktif</span>
+                  {% else %}
+                    <span class="badge badge-neutral">Nonaktif</span>
+                  {% endif %}
+                </td>
+                <td style="text-align: right;">
+                  <button type="button" onclick="deleteVoucher({{ v.id }}, '{{ v.code }}')" class="btn btn-subtle btn-sm" style="color: var(--danger); padding: 2px 6px; font-size: 11px;">Hapus</button>
+                </td>
+              </tr>
+            {% endfor %}
+          {% else %}
+            <tr>
+              <td colspan="6" style="text-align: center; padding: 32px; color: var(--text-muted);">
+                Belum ada voucher yang dibuat.
+              </td>
+            </tr>
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+async function handleCreateVoucher(e) {
+  e.preventDefault();
+  const btn = document.getElementById('v-btn');
+  btn.disabled = true;
+
+  const payload = {
+    code: document.getElementById('v-code').value.trim().toUpperCase(),
+    discount_type: document.getElementById('v-type').value,
+    discount_value: parseInt(document.getElementById('v-value').value) || 0,
+    min_order_amount: parseInt(document.getElementById('v-min-order').value) || 0,
+    usage_limit: parseInt(document.getElementById('v-limit').value) || 0,
+    is_active: true
+  };
+
+  try {
+    const res = await fetch('/api/admin/vouchers', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.detail || 'Gagal membuat voucher');
+
+    showToast(`Voucher ${data.code} berhasil dibuat!`, 'success');
+    window.location.reload();
+  } catch (err) {
+    showToast(err.message, 'error');
+    btn.disabled = false;
+  }
+}
+
+async function deleteVoucher(id, code) {
+  if (!confirm(`Hapus voucher "${code}"?`)) return;
+  try {
+    const res = await fetch(`/api/admin/vouchers/${id}`, { method: 'DELETE' });
+    if (!res.ok) throw new Error('Gagal menghapus');
+    showToast('Voucher dihapus', 'info');
+    window.location.reload();
+  } catch (err) {
+    showToast(err.message, 'error');
+  }
+}
+</script>
+{% endblock %}

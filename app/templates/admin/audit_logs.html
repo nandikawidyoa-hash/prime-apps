@@ -1,0 +1,57 @@
+{% extends "admin/base_admin.html" %}
+
+{% block page_title %}Audit Trail & Keamanan{% endblock %}
+{% block page_subtitle %}Catatan aktivitas sensitif operasional sistem, perubahan data, dan otentikasi admin{% endblock %}
+
+{% block content %}
+<div class="table-container">
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Waktu</th>
+        <th>Pelaksana (User)</th>
+        <th>Aktivitas (Action)</th>
+        <th>Entitas / ID</th>
+        <th>Rincian Keterangan</th>
+        <th>IP Address</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% if logs %}
+        {% for l in logs %}
+          <tr>
+            <td class="text-xs text-muted" style="white-space: nowrap;">{{ l.created_at }}</td>
+            <td>
+              <div style="font-weight: 600;">{{ l.user_email or 'System' }}</div>
+              {% if l.user_id %}
+                <span class="text-xs text-muted">ID: {{ l.user_id }}</span>
+              {% endif %}
+            </td>
+            <td>
+              <span class="badge badge-neutral" style="font-family: var(--font-mono); font-size: 11px;">
+                {{ l.action }}
+              </span>
+            </td>
+            <td class="text-xs">
+              <strong>{{ l.resource_type or '-' }}</strong>
+              {% if l.resource_id %}
+                <span class="text-muted">#{{ l.resource_id }}</span>
+              {% endif %}
+            </td>
+            <td style="font-size: 0.85rem; max-width: 320px; word-break: break-word;">
+              {{ l.details or '-' }}
+            </td>
+            <td class="font-mono text-xs text-muted">{{ l.ip_address or '127.0.0.1' }}</td>
+          </tr>
+        {% endfor %}
+      {% else %}
+        <tr>
+          <td colspan="6" style="text-align: center; padding: 32px; color: var(--text-muted);">
+            Belum ada catatan aktivitas audit.
+          </td>
+        </tr>
+      {% endif %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

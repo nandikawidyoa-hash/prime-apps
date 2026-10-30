@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}Halaman Tidak Ditemukan — 404{% endblock %}
+
+{% block content %}
+<div class="container container-narrow" style="padding-top: 80px; padding-bottom: 100px; text-align: center;">
+  <div style="font-size: 5rem; font-weight: 800; color: var(--accent); margin-bottom: 12px; line-height: 1;">404</div>
+  <h2 style="font-size: 1.8rem; margin-bottom: 12px;">Halaman Tidak Ditemukan</h2>
+  <p style="margin-bottom: 32px; max-width: 440px; margin-left: auto; margin-right: auto;">
+    Maaf, tautan atau produk yang Anda cari mungkin telah dipindahkan, dinonaktifkan, atau alamat URL yang dimasukkan salah.
+  </p>
+  <div style="display: flex; gap: 14px; justify-content: center;">
+    <a href="/" class="btn btn-primary">Kembali ke Beranda</a>
+    <a href="/catalog" class="btn btn-secondary">Cari di Katalog Produk</a>
+  </div>
+</div>
+{% endblock %}

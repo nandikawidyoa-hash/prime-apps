@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block title %}Bantuan & Pertanyaan Umum (FAQ) — {{ store_settings.store_name or 'PRIME APPS' }}{% endblock %}
+
+{% block content %}
+<div class="container container-narrow" style="padding-top: 40px; padding-bottom: 80px;">
+  <div style="text-align: center; margin-bottom: 40px;">
+    <h1>Pusat Bantuan & FAQ</h1>
+    <p class="text-sm">Pertanyaan yang sering diajukan seputar lisensi digital dan cara aktivasi.</p>
+  </div>
+
+  <div style="display: flex; flex-direction: column; gap: 16px;">
+    <div style="background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); padding: 24px;">
+      <h3 style="font-size: 1.1rem; margin-bottom: 8px;">Berapa lama proses pengiriman lisensi setelah saya membayar?</h3>
+      <p style="font-size: 0.925rem; color: var(--text-secondary); line-height: 1.6;">
+        Pengiriman berlangsung <strong>instan secara otomatis (kurang dari 3 detik)</strong> setelah pembayaran QRIS atau Virtual Account Anda terkonfirmasi oleh sistem kami. Kode serial lisensi dan instruksi instalasi langsung muncul di layar Anda dan tersimpan permanen di menu Akun Anda.
+      </p>
+    </div>
+
+    <div style="background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); padding: 24px;">
+      <h3 style="font-size: 1.1rem; margin-bottom: 8px;">Apakah aplikasi dan lisensi yang dijual resmi dan legal?</h3>
+      <p style="font-size: 0.925rem; color: var(--text-secondary); line-height: 1.6;">
+        Ya, seluruh lisensi digital yang kami sediakan adalah lisensi original dan resmi yang didapatkan melalui kemitraan developer dan jalur distribusi resmi. Kami tidak menjual akun curian, mod bajakan, atau kredensial ilegal yang melanggar ketentuan hukum.
+      </p>
+    </div>
+
+    <div style="background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); padding: 24px;">
+      <h3 style="font-size: 1.1rem; margin-bottom: 8px;">Bagaimana jika lisensi mengalami kendala saat diaktivasi?</h3>
+      <p style="font-size: 0.925rem; color: var(--text-secondary); line-height: 1.6;">
+        Semua produk dilindungi <strong>Garansi Penuh 100%</strong>. Jika serial key tidak bisa digunakan atau terjadi kendala dari server penyedia, tim dukungan kami akan memberikan penggantian kode serial baru atau pengembalian dana (refund) sesuai kebijakan garansi toko kami.
+      </p>
+    </div>
+
+    <div style="background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); padding: 24px;">
+      <h3 style="font-size: 1.1rem; margin-bottom: 8px;">Metode pembayaran apa saja yang diterima?</h3>
+      <p style="font-size: 0.925rem; color: var(--text-secondary); line-height: 1.6;">
+        Kami menerima pembayaran melalui QRIS (dapat di-scan dengan aplikasi m-banking seperti BCA, Mandiri, BRI, BNI serta e-wallet seperti GoPay, OVO, Dana, ShopeePay), Virtual Account Bank otomatis 24 jam, dan transfer langsung.
+      </p>
+    </div>
+  </div>
+
+  <div style="text-align: center; margin-top: 48px; padding: 32px; background: var(--bg-subtle); border-radius: var(--radius-xl);">
+    <h3>Masih memiliki pertanyaan lain?</h3>
+    <p class="text-sm text-muted" style="margin-bottom: 20px;">Tim Customer Care kami siap membantu Anda setiap hari pukul 08:00 - 23:00 WIB.</p>
+    <a href="/contact" class="btn btn-primary">Hubungi Customer Service</a>
+  </div>
+</div>
+{% endblock %}

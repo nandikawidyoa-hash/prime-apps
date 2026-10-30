@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}Kebijakan Privasi — {{ store_settings.store_name or 'PRIME APPS' }}{% endblock %}
+
+{% block content %}
+<div class="container container-narrow" style="padding-top: 50px; padding-bottom: 80px;">
+  <div style="margin-bottom: 32px;">
+    <h1>Kebijakan Privasi Pengguna</h1>
+    <p class="text-sm">Perlindungan data pribadi Anda adalah prioritas utama kami.</p>
+  </div>
+
+  <div style="background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: var(--radius-xl); padding: 36px; line-height: 1.8; color: var(--text-secondary); display: flex; flex-direction: column; gap: 20px;">
+    <p>
+      Kami menghargai privasi setiap pelanggan. Dokumen ini menjelaskan bagaimana data Anda dikumpulkan, digunakan, dan dilindungi saat bertransaksi di platform kami.
+    </p>
+
+    <h3 style="color: var(--text-primary); font-size: 1.2rem;">Data yang Kami Kumpulkan</h3>
+    <p>
+      Data yang kami kumpulkan terbatas pada informasi yang diperlukan untuk pemrosesan order dan pengiriman digital: Nama lengkap, alamat email aktif (untuk pengiriman lisensi), dan nomor WhatsApp (untuk notifikasi transaksi). Kami <strong>tidak pernah menyimpan data kartu kredit atau kredensial perbankan Anda</strong>; semua transaksi diproses melalui gateway berlisensi Bank Indonesia.
+    </p>
+
+    <h3 style="color: var(--text-primary); font-size: 1.2rem;">Keamanan Data</h3>
+    <p>
+      Semua data pelanggan disimpan dalam basis data terenkripsi dan tidak pernah diperjualbelikan atau dibagikan kepada pihak ketiga untuk kepentingan periklanan di luar pemenuhan layanan pesanan Anda.
+    </p>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block title %}Hubungi Kami — {{ store_settings.store_name or 'PRIME APPS' }}{% endblock %}
+
+{% block content %}
+<div class="container container-narrow" style="padding-top: 50px; padding-bottom: 80px;">
+  <div style="margin-bottom: 32px; text-align: center;">
+    <h1>Hubungi Tim Dukungan</h1>
+    <p class="text-sm">Kami siap membantu pertanyaan aktivasi, kendala transaksi, atau kerjasama lisensi bisnis.</p>
+  </div>
+
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 40px;">
+    <div style="background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); padding: 28px;">
+      <div style="font-size: 2rem; margin-bottom: 12px;">💬</div>
+      <h3 style="font-size: 1.15rem; margin-bottom: 8px;">WhatsApp Customer Care</h3>
+      <p class="text-xs text-muted" style="margin-bottom: 14px;">Respon tercepat untuk bantuan aktivasi dan klaim garansi.</p>
+      <div style="font-size: 1.1rem; font-weight: 700; color: var(--accent); margin-bottom: 16px;">
+        {{ store_settings.contact_whatsapp or '+62 812-3456-7890' }}
+      </div>
+      <span class="badge badge-success">Aktif Setiap Hari (08:00 - 23:00 WIB)</span>
+    </div>
+
+    <div style="background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); padding: 28px;">
+      <div style="font-size: 2rem; margin-bottom: 12px;">✉️</div>
+      <h3 style="font-size: 1.15rem; margin-bottom: 8px;">Email Resmi</h3>
+      <p class="text-xs text-muted" style="margin-bottom: 14px;">Untuk pertanyaan korporat, penawaran lisensi bulk, atau keluhan.</p>
+      <div style="font-size: 1.1rem; font-weight: 700; color: var(--accent); margin-bottom: 16px;">
+        {{ store_settings.contact_email or 'support@primeapps.id' }}
+      </div>
+      <span class="badge badge-neutral">Balasan dalam 1-2 Jam Kerja</span>
+    </div>
+  </div>
+
+  <!-- Contact Form -->
+  <div style="background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: var(--radius-xl); padding: 36px;">
+    <h3 style="margin-bottom: 20px; font-size: 1.25rem;">Kirim Pesan Langsung</h3>
+    <form onsubmit="handleContactSubmit(event)">
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+        <div class="form-group">
+          <label class="form-label">Nama Anda</label>
+          <input type="text" required placeholder="Nama Lengkap" class="form-input" id="c-name">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Email</label>
+          <input type="email" required placeholder="nama@email.com" class="form-input" id="c-email">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Nomor Pesanan (Jika ada)</label>
+        <input type="text" placeholder="#PRIME-XXXX" class="form-input" id="c-order">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Pesan atau Kendala</label>
+        <textarea required rows="4" placeholder="Tuliskan kendala aktivasi atau pertanyaan Anda..." class="form-textarea" id="c-msg"></textarea>
+      </div>
+      <button type="submit" class="btn btn-primary" id="c-btn">Kirim Pesan</button>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function handleContactSubmit(e) {
+  e.preventDefault();
+  const btn = document.getElementById('c-btn');
+  btn.disabled = true;
+  btn.textContent = 'Terkirim!';
+  showToast('Pesan Anda telah diterima oleh tim support. Kami akan segera menghubungi Anda.', 'success');
+  setTimeout(() => {
+    e.target.reset();
+    btn.disabled = false;
+    btn.textContent = 'Kirim Pesan';
+  }, 2000);
+}
+</script>
+{% endblock %}

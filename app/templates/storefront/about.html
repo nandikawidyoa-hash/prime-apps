@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}Tentang Kami — {{ store_settings.store_name or 'PRIME APPS' }}{% endblock %}
+
+{% block content %}
+<div class="container container-narrow" style="padding-top: 50px; padding-bottom: 80px;">
+  <div style="margin-bottom: 32px;">
+    <h1>Tentang {{ store_settings.store_name or 'PRIME APPS' }}</h1>
+    <p class="text-sm">Platform distribusi produk digital dan lisensi aplikasi terpercaya di Indonesia.</p>
+  </div>
+
+  <div style="background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: var(--radius-xl); padding: 36px; line-height: 1.8; color: var(--text-secondary); display: flex; flex-direction: column; gap: 20px;">
+    <p>
+      <strong>{{ store_settings.store_name or 'PRIME APPS' }}</strong> didirikan dengan satu misi utama: memberikan kemudahan bagi para profesional, pengembang perangkat lunak, desainer, dan bisnis di Indonesia untuk mengakses aplikasi premium dan alat kecerdasan buatan (AI) kelas dunia secara legal, aman, terjangkau, dan instan.
+    </p>
+
+    <h3 style="color: var(--text-primary); font-size: 1.25rem;">Nilai & Komitmen Kami</h3>
+    <ul style="padding-left: 20px; display: flex; flex-direction: column; gap: 10px;">
+      <li><strong>Legalitas & Keaslian Terjamin:</strong> Kami hanya mendistribusikan lisensi digital yang sah dan resmi.</li>
+      <li><strong>Pengiriman Digital Otomatis:</strong> Integrasi sistem pengiriman instan yang bekerja 24 jam non-stop tanpa intervensi manual.</li>
+      <li><strong>Garansi Purna Jual & Dukungan Manusia:</strong> Setiap pelanggan mendapatkan akses ke tim bantuan teknis yang responsif melalui WhatsApp dan Email.</li>
+      <li><strong>Keamanan Transaksi:</strong> Didukung oleh payment gateway Indonesia berizin Bank Indonesia untuk memfasilitasi transaksi QRIS dan Virtual Account yang aman.</li>
+    </ul>
+
+    <h3 style="color: var(--text-primary); font-size: 1.25rem;">Operasional & Lokasi</h3>
+    <p>
+      {{ store_settings.store_name or 'PRIME APPS' }} beroperasi di Indonesia dengan layanan pelanggan online setiap hari. Kami melayani ribuan pelanggan dari berbagai penjuru tanah air, mulai dari freelancer mandiri hingga tim perusahaan.
+    </p>
+  </div>
+</div>
+{% endblock %}

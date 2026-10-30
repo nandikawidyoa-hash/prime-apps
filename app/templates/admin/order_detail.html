@@ -1,0 +1,172 @@
+{% extends "admin/base_admin.html" %}
+
+{% block page_title %}Detail Pesanan: #{{ order.order_number }}{% endblock %}
+{% block page_subtitle %}Inspeksi status pembayaran, item yang dibeli, dan pengiriman serial lisensi{% endblock %}
+
+{% block content %}
+<div style="display: grid; grid-template-columns: 2fr 1fr; gap: 32px; align-items: start;">
+  <!-- Left Column: Order Items & Delivery Keys -->
+  <div>
+    <!-- Items Purchased -->
+    <div style="background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); padding: 24px; margin-bottom: 24px;">
+      <h3 style="margin-bottom: 18px; font-size: 1.15rem;">Item Produk Digital</h3>
+
+      <div style="display: flex; flex-direction: column; gap: 16px;">
+        {% for item in items %}
+          <div style="padding: 16px; background: var(--bg-primary); border-radius: var(--radius-md); border: 1px solid var(--border-subtle);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+              <div>
+                <h4 style="font-size: 1rem;">{{ item.product_name }}</h4>
+                <div class="text-xs text-muted">{{ item.quantity }}x @ Rp {{ "{:,}".format(item.price).replace(',', '.') }}</div>
+              </div>
+              <div style="font-weight: 700; font-size: 1.05rem;">
+                Rp {{ "{:,}".format(item.subtotal).replace(',', '.') }}
+              </div>
+            </div>
+
+            <!-- License Payload Card with Manual Override Button -->
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px; padding: 10px 14px; background: var(--bg-surface); border: 1px dashed var(--border-default); border-radius: var(--radius-sm); font-size: 0.85rem; flex-wrap: wrap; gap: 8px;">
+              <div>
+                <span class="text-xs text-muted" style="text-transform: uppercase; font-weight: 600;">Lisensi Terkirim:</span>
+                <div class="font-mono" style="color: var(--accent); font-weight: 700; margin-top: 2px;">
+                  {{ item.digital_payload or '(Belum terkirim / Menunggu konfirmasi lunas)' }}
+                </div>
+              </div>
+              <button type="button" onclick="overrideOrderLicenseKey({{ order.id }}, {{ item.id }}, '{{ item.digital_payload or '' }}')" class="btn btn-secondary btn-sm" style="font-size: 11px;">
+                ✏️ {% if item.digital_payload %}Ubah Lisensi{% else %}Input Lisensi Manual{% endif %}
+              </button>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+
+      <!-- Financial Totals -->
+      <div style="margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--border-subtle); display: flex; flex-direction: column; gap: 8px; font-size: 0.9rem;">
+        <div style="display: flex; justify-content: space-between;">
+          <span class="text-muted">Subtotal:</span>
+          <span>Rp {{ "{:,}".format(order.subtotal).replace(',', '.') }}</span>
+        </div>
+        {% if order.discount_amount > 0 %}
+          <div style="display: flex; justify-content: space-between; color: var(--success);">
+            <span>Diskon Voucher ({{ order.voucher_code }}):</span>
+            <span>- Rp {{ "{:,}".format(order.discount_amount).replace(',', '.') }}</span>
+          </div>
+        {% endif %}
+        <div style="display: flex; justify-content: space-between; font-size: 1.2rem; font-weight: 700; padding-top: 10px; border-top: 1px solid var(--border-default);">
+          <span>Total Tagihan:</span>
+          <span style="color: var(--text-primary);">Rp {{ "{:,}".format(order.total_amount).replace(',', '.') }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Internal Admin Notes -->
+    <div style="background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); padding: 24px;">
+      <h3 style="margin-bottom: 12px; font-size: 1.15rem;">Catatan Internal Admin</h3>
+      <div class="form-group" style="margin-bottom: 12px;">
+        <textarea id="internal-notes-input" rows="3" class="form-textarea" placeholder="Tuliskan catatan internal operasional...">{{ order.internal_notes or '' }}</textarea>
+      </div>
+      <button type="button" onclick="saveInternalNotes({{ order.id }})" class="btn btn-secondary btn-sm">Simpan Catatan</button>
+    </div>
+  </div>
+
+  <!-- Right Column: Customer Info & Status Controls -->
+  <div>
+    <!-- Status Control Box -->
+    <div style="background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); padding: 24px; margin-bottom: 24px;">
+      <h4 style="margin-bottom: 14px;">Status Pembayaran</h4>
+      
+      <div style="margin-bottom: 16px;">
+        {% if order.payment_status == 'PAID' %}
+          <span class="badge badge-success" style="font-size: 12px; padding: 6px 14px;">LUNAS (PAID)</span>
+        {% elif order.payment_status == 'PENDING' %}
+          <span class="badge badge-warning" style="font-size: 12px; padding: 6px 14px;">MENUNGGU PEMBAYARAN</span>
+        {% elif order.payment_status == 'REFUNDED' %}
+          <span class="badge badge-danger" style="font-size: 12px; padding: 6px 14px;">DIREFUND</span>
+        {% else %}
+          <span class="badge badge-neutral" style="font-size: 12px; padding: 6px 14px;">{{ order.payment_status }}</span>
+        {% endif %}
+      </div>
+
+      <p class="text-xs text-muted" style="margin-bottom: 16px;">
+        Alur status pesanan valid: Anda dapat menandai Lunas jika pelanggan mentransfer manual, atau mencatat Refund jika lisensi dibatalkan.
+      </p>
+
+      <div style="display: flex; flex-direction: column; gap: 8px;">
+        {% if order.payment_status != 'PAID' %}
+          <button type="button" onclick="updateOrderStatus({{ order.id }}, 'PAID')" class="btn btn-primary btn-sm">
+            ✓ Konfirmasi Lunas & Kirim Lisensi
+          </button>
+        {% endif %}
+        {% if order.payment_status == 'PAID' %}
+          <button type="button" onclick="updateOrderStatus({{ order.id }}, 'REFUNDED')" class="btn btn-danger btn-sm">
+            Kembalikan Dana (Refund)
+          </button>
+        {% endif %}
+        {% if order.payment_status == 'PENDING' %}
+          <button type="button" onclick="updateOrderStatus({{ order.id }}, 'FAILED')" class="btn btn-subtle btn-sm" style="color: var(--danger);">
+            Batalkan Pesanan
+          </button>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Customer Details Card -->
+    <div style="background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); padding: 24px;">
+      <h4 style="margin-bottom: 14px;">Informasi Pelanggan</h4>
+      
+      <div style="display: flex; flex-direction: column; gap: 10px; font-size: 0.875rem;">
+        <div>
+          <span class="text-muted">Nama:</span><br>
+          <strong>{{ order.customer_name }}</strong>
+        </div>
+        <div>
+          <span class="text-muted">Email Pengiriman:</span><br>
+          <a href="mailto:{{ order.customer_email }}" style="color: var(--accent);">{{ order.customer_email }}</a>
+        </div>
+        <div>
+          <span class="text-muted">Nomor WhatsApp:</span><br>
+          {% if order.customer_phone %}
+            <a href="https://wa.me/{{ order.customer_phone.replace('+', '').replace('-', '').replace(' ', '') }}" target="_blank" class="btn btn-sm btn-whatsapp" style="display: inline-flex; margin-top: 4px; padding: 4px 10px;">
+              💬 Hubungi via WhatsApp
+            </a>
+          {% else %}
+            <span>-</span>
+          {% endif %}
+        </div>
+        <div>
+          <span class="text-muted">Metode Pembayaran:</span><br>
+          <span class="badge badge-neutral">{{ order.payment_method }}</span>
+        </div>
+        <div>
+          <span class="text-muted">Waktu Transaksi:</span><br>
+          <span>{{ order.created_at }}</span>
+        </div>
+        <div>
+          <span class="text-muted">Alamat IP Pembeli:</span><br>
+          <span class="font-mono text-xs">{{ order.ip_address or '127.0.0.1' }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+async function saveInternalNotes(orderId) {
+  const notes = document.getElementById('internal-notes-input').value;
+  try {
+    const res = await fetch(`/api/admin/orders/${orderId}/notes`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ notes: notes })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.detail || 'Gagal menyimpan catatan');
+    showToast('Catatan internal berhasil disimpan', 'success');
+  } catch (err) {
+    showToast(err.message, 'error');
+  }
+}
+</script>
+{% endblock %}

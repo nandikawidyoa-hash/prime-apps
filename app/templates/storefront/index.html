@@ -1,0 +1,268 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+  <!-- Hero Section (Editorial Layout) -->
+  <section class="hero-section">
+    <div class="hero-editorial">
+      <div>
+        <div class="hero-badge-pill">
+          <span class="hero-badge-dot"></span>
+          <span>{{ store_settings.hero_badge or 'Katalog Digital Premium 2026' }}</span>
+        </div>
+        <h1 class="hero-title">
+          {{ store_settings.hero_title or 'Aplikasi & Tools Digital Terbaik untuk Produktivitas Anda.' }}
+        </h1>
+        <p class="hero-subtitle">
+          {{ store_settings.hero_subtitle or 'Dapatkan lisensi original untuk AI tools, developer software, dan aplikasi desain dengan garansi penuh dan pengiriman digital otomatis tanpa menunggu.' }}
+        </p>
+        <div class="hero-actions">
+          <a href="/catalog" class="btn btn-primary btn-lg">Jelajahi Katalog</a>
+          <a href="/catalog?sort=popular" class="btn btn-secondary btn-lg">Produk Unggulan</a>
+          <a href="https://wa.me/{{ (store_settings.contact_whatsapp or '6281234567890').replace('+', '').replace(' ', '').replace('-', '') }}?text=Halo%20Admin%2C%20saya%20ingin%20tanya%20produk%20aplikasi" target="_blank" class="btn btn-whatsapp btn-lg">
+            💬 Tanya via WhatsApp
+          </a>
+        </div>
+      </div>
+
+      <!-- Hero Visual Art / Feature Card -->
+      <div style="background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: var(--radius-xl); padding: 30px; box-shadow: var(--shadow-float); position: relative;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 8px;">
+          <span class="badge badge-accent">⚡ Instant Delivery Vault</span>
+          <span class="badge badge-success">Sistem Online 24/7</span>
+        </div>
+        
+        <div style="display: flex; flex-direction: column; gap: 14px;">
+          <div style="display: flex; align-items: center; gap: 12px; padding: 12px; background: var(--bg-subtle); border-radius: var(--radius-md);">
+            <div style="width: 42px; height: 42px; border-radius: 10px; background: #0071e3; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 700;">AI</div>
+            <div style="flex: 1; min-width: 0;">
+              <div style="font-weight: 600; font-size: 0.9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">AI Studio & Productivity Pro</div>
+              <div style="font-size: 0.75rem; color: var(--text-muted);">Lisensi Tahunan • Resmi & Garansi</div>
+            </div>
+            <span class="badge badge-success" style="font-size: 10px;">Ready</span>
+          </div>
+
+          <div style="display: flex; align-items: center; gap: 12px; padding: 12px; background: var(--bg-subtle); border-radius: var(--radius-md);">
+            <div style="width: 42px; height: 42px; border-radius: 10px; background: #34c759; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 700;">DEV</div>
+            <div style="flex: 1; min-width: 0;">
+              <div style="font-weight: 600; font-size: 0.9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Full-Stack IDE & Cloud Tools</div>
+              <div style="font-size: 0.75rem; color: var(--text-muted);">Aktivasi Langsung ke Email Anda</div>
+            </div>
+            <span class="badge badge-success" style="font-size: 10px;">Ready</span>
+          </div>
+
+          <div style="display: flex; align-items: center; gap: 12px; padding: 12px; background: var(--bg-subtle); border-radius: var(--radius-md);">
+            <div style="width: 42px; height: 42px; border-radius: 10px; background: #ff9500; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 700;">DSN</div>
+            <div style="flex: 1; min-width: 0;">
+              <div style="font-weight: 600; font-size: 0.9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Creative Suite & Motion Kit</div>
+              <div style="font-size: 0.75rem; color: var(--text-muted);">Asset Pack & License Key Otomatis</div>
+            </div>
+            <span class="badge badge-success" style="font-size: 10px;">Ready</span>
+          </div>
+        </div>
+
+        <div style="margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--border-subtle); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+          <div>
+            <div style="font-size: 0.725rem; color: var(--text-muted);">Kecepatan Pengiriman Serial Key</div>
+            <div style="font-size: 1.05rem; font-weight: 700; color: var(--text-primary);">&lt; 3 Detik setelah Bayar</div>
+          </div>
+          <span class="badge badge-neutral">Otomatis 24 Jam</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Trust Features Bar -->
+    <div class="hero-features-bar">
+      <div class="hero-feature-item">
+        <div class="hero-feature-icon">⚡</div>
+        <div class="hero-feature-text">
+          <h4>Pengiriman Otomatis</h4>
+          <p>Kode lisensi tampil langsung setelah pembayaran</p>
+        </div>
+      </div>
+      <div class="hero-feature-item">
+        <div class="hero-feature-icon">🛡️</div>
+        <div class="hero-feature-text">
+          <h4>100% Legal & Bergaransi</h4>
+          <p>Garansi ganti baru atau uang kembali</p>
+        </div>
+      </div>
+      <div class="hero-feature-item">
+        <div class="hero-feature-icon">💳</div>
+        <div class="hero-feature-text">
+          <h4>Pembayaran Indonesia</h4>
+          <p>QRIS (Semua E-Wallet), VA BCA, Mandiri, dll.</p>
+        </div>
+      </div>
+      <div class="hero-feature-item">
+        <div class="hero-feature-icon">💬</div>
+        <div class="hero-feature-text">
+          <h4>Dukungan Teknis</h4>
+          <p>Bantuan aktivasi ramah via WhatsApp & Email</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Categories Explorer -->
+  <section style="margin: 48px 0 24px;">
+    <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 16px;">
+      <div>
+        <h2>Kategori Pilihan</h2>
+        <p class="text-sm">Jelajahi aplikasi berdasarkan kebutuhan spesifik Anda</p>
+      </div>
+      <a href="/catalog" class="btn btn-subtle btn-sm">Lihat Semua →</a>
+    </div>
+
+    <div class="filter-pills">
+      <a href="/catalog" class="pill-item active">Semua Kategori</a>
+      {% for cat in categories %}
+        <a href="/catalog?category={{ cat.slug }}" class="pill-item">
+          <span>{{ cat.icon or '📦' }} {{ cat.name }}</span>
+        </a>
+      {% endfor %}
+    </div>
+  </section>
+
+  <!-- Featured Products Section -->
+  <section style="margin: 36px 0 50px;">
+    <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 20px;">
+      <div>
+        <h2>Produk Unggulan</h2>
+        <p class="text-sm">Pilihan terpopuler dengan performa dan ulasan terbaik</p>
+      </div>
+      <a href="/catalog?featured=1" class="btn btn-secondary btn-sm">Lihat Koleksi Unggulan</a>
+    </div>
+
+    <div class="product-grid">
+      {% for product in featured_products %}
+        <div class="product-card">
+          <div class="product-thumb-wrapper">
+            {% if product.primary_image %}
+              <img src="{{ product.primary_image }}" alt="{{ product.name }}" class="product-thumb" loading="lazy">
+            {% else %}
+              <div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: var(--bg-subtle); color: var(--text-muted); font-size: 2rem;">
+                📦
+              </div>
+            {% endif %}
+            <div style="position: absolute; top: 10px; left: 10px; display: flex; gap: 6px;">
+              {% if product.sale_price and product.sale_price < product.regular_price %}
+                <span class="badge badge-danger">PROMO DISKON</span>
+              {% endif %}
+              {% if product.is_featured %}
+                <span class="badge badge-accent">UNGGULAN</span>
+              {% endif %}
+            </div>
+          </div>
+
+          <div class="product-card-body">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+              <span class="product-card-category">{{ product.category_name or 'Aplikasi' }}</span>
+              <span class="rating-badge">★ 4.9</span>
+            </div>
+            
+            <h3 class="product-card-title">
+              <a href="/product/{{ product.slug }}">{{ product.name }}</a>
+            </h3>
+            <p class="product-card-desc">{{ product.short_description or 'Lisensi digital resmi siap aktivasi langsung.' }}</p>
+
+            <div class="product-card-footer">
+              <div class="price-box">
+                {% if product.sale_price and product.sale_price < product.regular_price %}
+                  <span class="price-regular">Rp {{ "{:,}".format(product.sale_price).replace(',', '.') }}</span>
+                  <span class="price-original">Rp {{ "{:,}".format(product.regular_price).replace(',', '.') }}</span>
+                {% else %}
+                  <span class="price-regular">Rp {{ "{:,}".format(product.regular_price).replace(',', '.') }}</span>
+                {% endif %}
+              </div>
+              <div style="display: flex; gap: 6px;">
+                <button type="button" onclick="Cart.add({{ product.id }})" class="btn btn-secondary btn-sm" title="Tambah ke Keranjang">
+                  🛒
+                </button>
+                <a href="/product/{{ product.slug }}" class="btn btn-primary btn-sm">
+                  Detail
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  </section>
+
+  <!-- WhatsApp Consultation Callout Banner -->
+  <section style="margin: 40px 0; background: linear-gradient(135deg, rgba(37, 211, 102, 0.08), rgba(0, 113, 227, 0.08)); border: 1px solid var(--border-default); border-radius: var(--radius-xl); padding: 32px 28px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px;">
+    <div>
+      <span class="badge badge-success" style="margin-bottom: 8px;">LAYANAN KONSULTASI 24/7</span>
+      <h3 style="font-size: 1.35rem; margin-bottom: 6px;">Butuh Bantuan Memilih Aplikasi atau Lisensi Perusahaan?</h3>
+      <p style="font-size: 0.9rem; color: var(--text-secondary); max-width: 580px;">
+        Tim customer service kami siap membantu mencarikan perangkat lunak terbaik, panduan aktivasi, maupun penawaran lisensi bulk / enterprise khusus tim Anda.
+      </p>
+    </div>
+    <a href="https://wa.me/{{ (store_settings.contact_whatsapp or '6281234567890').replace('+', '').replace(' ', '').replace('-', '') }}?text=Halo%20Admin%2C%20saya%20butuh%20konsultasi%20lisensi%20aplikasi" target="_blank" class="btn btn-whatsapp btn-lg">
+      💬 Chat WhatsApp Sekarang
+    </a>
+  </section>
+
+  <!-- Latest Products Section -->
+  <section style="margin: 40px 0 70px;">
+    <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 20px;">
+      <div>
+        <h2>Katalog Terbaru</h2>
+        <p class="text-sm">Aplikasi dan tools baru ditambahkan ke toko</p>
+      </div>
+      <a href="/catalog?sort=newest" class="btn btn-subtle btn-sm">Buka Seluruh Katalog →</a>
+    </div>
+
+    <div class="product-grid">
+      {% for product in latest_products %}
+        <div class="product-card">
+          <div class="product-thumb-wrapper">
+            {% if product.primary_image %}
+              <img src="{{ product.primary_image }}" alt="{{ product.name }}" class="product-thumb" loading="lazy">
+            {% else %}
+              <div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: var(--bg-subtle); color: var(--text-muted); font-size: 2rem;">
+                🚀
+              </div>
+            {% endif %}
+            <div style="position: absolute; top: 10px; left: 10px;">
+              <span class="badge badge-neutral">TERBARU</span>
+            </div>
+          </div>
+
+          <div class="product-card-body">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+              <span class="product-card-category">{{ product.category_name or 'Produk Digital' }}</span>
+              <span class="rating-badge">★ 4.9</span>
+            </div>
+            
+            <h3 class="product-card-title">
+              <a href="/product/{{ product.slug }}">{{ product.name }}</a>
+            </h3>
+            <p class="product-card-desc">{{ product.short_description or 'Lisensi instan dengan aktivasi cepat.' }}</p>
+
+            <div class="product-card-footer">
+              <div class="price-box">
+                {% if product.sale_price and product.sale_price < product.regular_price %}
+                  <span class="price-regular">Rp {{ "{:,}".format(product.sale_price).replace(',', '.') }}</span>
+                  <span class="price-original">Rp {{ "{:,}".format(product.regular_price).replace(',', '.') }}</span>
+                {% else %}
+                  <span class="price-regular">Rp {{ "{:,}".format(product.regular_price).replace(',', '.') }}</span>
+                {% endif %}
+              </div>
+              <div style="display: flex; gap: 6px;">
+                <button type="button" onclick="Cart.add({{ product.id }})" class="btn btn-secondary btn-sm">
+                  🛒
+                </button>
+                <a href="/product/{{ product.slug }}" class="btn btn-primary btn-sm">
+                  Detail
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  </section>
+</div>
+{% endblock %}
